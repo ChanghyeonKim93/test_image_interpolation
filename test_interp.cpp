@@ -45,7 +45,8 @@ inline void interpImageSameRatioHorizontal_unsafe(
   float ax,
   std::vector<float>& value_interp);
 inline void interpImageSameRatioHorizontalRegularPattern_unsafe(
-  const cv::Mat& img, const cv::Point2f& pt_center, size_t win_size,
+  const cv::Mat& img, const cv::Point2f& pt_center, 
+  float ax, size_t win_size,
   std::vector<float>& value_interp);
 
 // inline void interpImageSameRatio_IntelSSE(
@@ -67,8 +68,8 @@ int main()
   std::cout << img.cols <<", "<< img.rows << std::endl;
 
   // Generate patch. v-major is more faster.
-  float shift = 0.35;
-  int u = 270;
+  float shift = 0.44;
+  int u = 350;
   int v = 250;
   int win_size = 51;
   size_t max_iter = 10000;
@@ -82,46 +83,55 @@ int main()
     }
   }
   
-  std::vector<float> value_interp;
+  std::vector<std::vector<float>> value_interp(30);
+  std::vector<float> value_interp2;
   std::vector<bool> mask_interp;
 
 
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImage(img, pts_sample, value_interp, mask_interp);
+    interpImage(img, pts_sample, value_interp[0], mask_interp);
   std::cout << "interpImage: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImage_unsafe(img, pts_sample, value_interp);
+    interpImage_unsafe(img, pts_sample, value_interp[1]);
   std::cout << "interpImage_unsafe: " << timer::toc(0) << " [ms]\n";
 
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImageSameRatio(img, pts_sample, shift, 0.0, value_interp, mask_interp);
+    interpImageSameRatio(img, pts_sample, shift, 0.0, value_interp[2], mask_interp);
   std::cout << "interpImageSameRatio: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImageSameRatio_unsafe(img, pts_sample, shift, 0.0, value_interp);
+    interpImageSameRatio_unsafe(img, pts_sample, shift, 0.0, value_interp[3]);
   std::cout << "interpImageSameRatio_unsafe: " << timer::toc(0) << " [ms]\n";
   
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImageSameRatioHorizontal(img, pts_sample, shift, value_interp, mask_interp);
+    interpImageSameRatioHorizontal(img, pts_sample, shift, value_interp[4], mask_interp);
   std::cout << "interpImageSameRatioHorizontal: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImageSameRatioHorizontal_unsafe(img, pts_sample, shift, value_interp);
+    interpImageSameRatioHorizontal_unsafe(img, pts_sample, shift, value_interp[5]);
   std::cout << "interpImageSameRatioHorizontal_unsafe: " << timer::toc(0) << " [ms]\n";
 
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    interpImageSameRatioHorizontalRegularPattern_unsafe(img, cv::Point2f(u,v), win_size, value_interp);
+    interpImageSameRatioHorizontalRegularPattern_unsafe(img, cv::Point2f(u + shift,v), shift, win_size, value_interp[6]);
   std::cout << "interpImageSameRatioHorizontalRegularPattern_unsafe: " << timer::toc(0) << " [ms]\n";
 
-  std::cout << "length of patch : " << pts_sample.size() << std::endl;
-  std::vector<unsigned char> values(value_interp.size(),255);
-  for(int i = 0; i < value_interp.size(); ++i)
-    values[i] = (uchar)value_interp[i];
+  // for(int i = 0; i < value_interp[0].size(); ++i){
+  //   for(int j = 0; j < 7; ++j)
+  //     std::cout << value_interp[j][i] << " ";
+
+  //   std::cout << "\n";
+  // }
+
+  // std::cout << "length of patch : " << pts_sample.size() << std::endl;
+  
+  std::vector<unsigned char> values(value_interp[0].size(),255);
+  for(int i = 0; i < value_interp[0].size(); ++i)
+    values[i] = (uchar)value_interp[0][i];
 
   int sz = std::sqrt(pts_sample.size());
   cv::Mat img_interp(sz,sz,CV_8U);
@@ -348,7 +358,8 @@ inline void interpImageSameRatioRegularPattern(
 };
 
 inline void interpImageSameRatioHorizontalRegularPattern_unsafe(
-  const cv::Mat& img, const cv::Point2f& pt_center, size_t win_size,
+  const cv::Mat& img, const cv::Point2f& pt_center,
+  float ax, size_t win_size,
   std::vector<float>& value_interp)
 {
   /*
@@ -384,16 +395,15 @@ inline void interpImageSameRatioHorizontalRegularPattern_unsafe(
   const unsigned char* ptr_img = img.ptr<unsigned char>(0);
 
   const cv::Point2i pt_center0((int)pt_center.x,(int)pt_center.y);
-  const float ax = pt_center.x - pt_center0.x;
  
   const size_t half_win_size = (int)floor(win_size*0.5);
 
   const size_t n_pts = win_size * win_size;
   value_interp.resize(n_pts, -1.0);
 
-  const unsigned char* ptr_row_start = ptr_img + (pt_center0.y - half_win_size)*n_cols + pt_center0.x - half_win_size - 1;
-  const unsigned char* ptr_row_end   = ptr_row_start + win_size + 1; // TODO: Patch가 화면 밖으로 나갈때!
-  const unsigned char* ptr_row_final = ptr_row_start + (win_size + 1) * n_cols;
+  const unsigned char* ptr_row_start = ptr_img + (pt_center0.y - half_win_size)*n_cols + pt_center0.x - half_win_size;
+  const unsigned char* ptr_row_end   = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
+  const unsigned char* ptr_row_final = ptr_row_start + (win_size ) * n_cols;
 
   int counter = 0;
   std::vector<float>::iterator it_value = value_interp.begin();
@@ -402,24 +412,23 @@ inline void interpImageSameRatioHorizontalRegularPattern_unsafe(
     const unsigned char* ptr = ptr_row_start;
     float I1 = *ptr;
     float I2 = *(++ptr);
-    ++ptr;
-
     float Ia = I1*(1.0-ax);
-    for(; ptr != ptr_row_end;)
+
+    ++ptr;
+    for(; ptr != ptr_row_end;++ptr)
     {
       float Ib = I2*ax;
       float I_interp = Ia + Ib; 
-      
+
       *(it_value) = I_interp;      
 
       Ia = I2 - Ib;
-      I2 = *(++ptr);
+      I2 = *(ptr);
       ++it_value;
       ++counter;
     }
 
   }
-  std::cout << "counter: " << counter <<", npts: " << n_pts << std::endl;
 };
 
 inline void interpImage_unsafe(const cv::Mat& img, const std::vector<cv::Point2f>& pts,
