@@ -45,7 +45,7 @@ int main()
   std::cout << "interpImage: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    image_processing::interpImage_unsafe(img, pts_sample, value_interp[1]);
+    image_processing::unsafe::interpImage(img, pts_sample, value_interp[1]);
   std::cout << "interpImage_unsafe: " << timer::toc(0) << " [ms]\n";
 
   timer::tic();
@@ -54,7 +54,7 @@ int main()
   std::cout << "interpImageSameRatio: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    image_processing::interpImageSameRatio_unsafe(img, pts_sample, shift, 0.0, value_interp[3]);
+    image_processing::unsafe::interpImageSameRatio(img, pts_sample, shift, 0.0, value_interp[3]);
   std::cout << "interpImageSameRatio_unsafe: " << timer::toc(0) << " [ms]\n";
   
   timer::tic();
@@ -63,13 +63,18 @@ int main()
   std::cout << "interpImageSameRatioHorizontal: " << timer::toc(0) << " [ms]\n";
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    image_processing::interpImageSameRatioHorizontal_unsafe(img, pts_sample, shift, value_interp[5]);
+    image_processing::unsafe::interpImageSameRatioHorizontal(img, pts_sample, shift, value_interp[5]);
   std::cout << "interpImageSameRatioHorizontal_unsafe: " << timer::toc(0) << " [ms]\n";
 
   timer::tic();
   for(int iter = 0; iter < max_iter; ++iter)
-    image_processing::interpImageSameRatioHorizontalRegularPattern_unsafe(img, cv::Point2f(u + shift,v), shift, win_size, value_interp[6]);
+    image_processing::unsafe::interpImageSameRatioHorizontalRegularPattern(img, cv::Point2f(u + shift,v), shift, win_size, value_interp[6]);
   std::cout << "interpImageSameRatioHorizontalRegularPattern_unsafe: " << timer::toc(0) << " [ms]\n";
+
+  timer::tic();
+  for(int iter = 0; iter < max_iter; ++iter)
+    image_processing::unsafe::interpImageSameRatioHorizontalRegularPatternArbitraryWindow(img, cv::Point2f(u + shift,v), shift, 25,25,25,25, value_interp[7]);
+  std::cout << "interpImageSameRatioHorizontalRegularPatternArbitraryWindow_unsafe: " << timer::toc(0) << " [ms]\n";
 
   // for(int i = 0; i < value_interp[0].size(); ++i){
   //   for(int j = 0; j < 7; ++j)
@@ -80,9 +85,9 @@ int main()
 
   // std::cout << "length of patch : " << pts_sample.size() << std::endl;
   
-  std::vector<unsigned char> values(value_interp[0].size(),255);
-  for(int i = 0; i < value_interp[0].size(); ++i)
-    values[i] = (uchar)value_interp[0][i];
+  std::vector<unsigned char> values(value_interp[7].size(),255);
+  for(int i = 0; i < value_interp[7].size(); ++i)
+    values[i] = (uchar)value_interp[7][i];
 
   int sz = std::sqrt(pts_sample.size());
   cv::Mat img_interp(sz,sz,CV_8U);

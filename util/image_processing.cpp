@@ -197,199 +197,280 @@ namespace image_processing
     const float ay = pt_center.y - pt_center0.y;
     const float axay = ax * ay;
   };
+};
 
-  void interpImageSameRatioHorizontalRegularPattern_unsafe(
-      const cv::Mat &img, const cv::Point2f &pt_center,
-      float ax, size_t win_size,
-      std::vector<float> &value_interp)
+namespace image_processing
+{
+  namespace unsafe
   {
-    /*
-    data order
-       0  1  2  3  4  5  6
-       7  8  9 10 11 12 13
-      14 15 16 17 18 19 20
-      21 22 23 24 25 26 27
-      28 29 30 31 32 33 34
-      35 36 37 38 39 40 41
-      42 43 44 45 46 47 48
-    */
-    /*
-      I1 I2 I3 I4 I5
-      J1 J2 J3 J4 J5
-      K1 K2 K3 K4 K5
 
-    // Initial
-      Ia = I1*(1-ax);
-      Ib = I2*ax;
-      I_interp = Ia + Ib; ( == I1*(1-ax) + I2*ax )
-
-    // Consecutive
-      Ia = I2 - Ib;
-      Ib = I3*ax;
-      I_interp = Ia + Ib; ( == I2*(1-ax) + I3*ax ) ...
-    */
-    if (img.type() != CV_8U)
-      std::runtime_error("img.type() != CV_8U");
-    if (!(win_size & 0x01))
-      std::runtime_error("'win_size' should be an odd number!");
-
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
-
-    const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
-
-    const size_t half_win_size = (int)floor(win_size * 0.5);
-
-    const size_t n_pts = win_size * win_size;
-    value_interp.resize(n_pts, -1.0);
-
-    const unsigned char *ptr_row_start = ptr_img + (pt_center0.y - half_win_size) * n_cols + pt_center0.x - half_win_size;
-    const unsigned char *ptr_row_end = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
-    const unsigned char *ptr_row_final = ptr_row_start + (win_size)*n_cols;
-
-    int counter = 0;
-    std::vector<float>::iterator it_value = value_interp.begin();
-    for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols)
+    void interpImageSameRatioHorizontalRegularPattern(
+        const cv::Mat &img, const cv::Point2f &pt_center,
+        float ax, size_t win_size,
+        std::vector<float> &value_interp)
     {
-      const unsigned char *ptr = ptr_row_start;
-      float I1 = *ptr;
-      float I2 = *(++ptr);
-      float Ia = I1 * (1.0 - ax);
+      /*
+      data order
+         0  1  2  3  4  5  6
+         7  8  9 10 11 12 13
+        14 15 16 17 18 19 20
+        21 22 23 24 25 26 27
+        28 29 30 31 32 33 34
+        35 36 37 38 39 40 41
+        42 43 44 45 46 47 48
+      */
+      /*
+        I1 I2 I3 I4 I5
+        J1 J2 J3 J4 J5
+        K1 K2 K3 K4 K5
 
-      ++ptr;
-      for (; ptr != ptr_row_end; ++ptr)
-      {
-        float Ib = I2 * ax;
-        float I_interp = Ia + Ib;
+      // Initial
+        Ia = I1*(1-ax);
+        Ib = I2*ax;
+        I_interp = Ia + Ib; ( == I1*(1-ax) + I2*ax )
 
-        *(it_value) = I_interp;
-
+      // Consecutive
         Ia = I2 - Ib;
-        I2 = *(ptr);
-        ++it_value;
-        ++counter;
+        Ib = I3*ax;
+        I_interp = Ia + Ib; ( == I2*(1-ax) + I3*ax ) ...
+      */
+      if (img.type() != CV_8U)
+        std::runtime_error("img.type() != CV_8U");
+      if (!(win_size & 0x01))
+        std::runtime_error("'win_size' should be an odd number!");
+
+      const size_t n_cols = img.cols;
+      const size_t n_rows = img.rows;
+      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+
+      const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
+
+      const size_t half_win_size = (int)floor(win_size * 0.5);
+
+      const size_t n_pts = win_size * win_size;
+      value_interp.resize(n_pts, -1.0);
+
+      const unsigned char *ptr_row_start = ptr_img + (pt_center0.y - half_win_size) * n_cols + pt_center0.x - half_win_size;
+      const unsigned char *ptr_row_end = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
+      const unsigned char *ptr_row_final = ptr_row_start + (win_size)*n_cols;
+
+      int counter = 0;
+      std::vector<float>::iterator it_value = value_interp.begin();
+      for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols)
+      {
+        const unsigned char *ptr = ptr_row_start;
+        float I1 = *ptr;
+        float I2 = *(++ptr);
+        float Ia = I1 * (1.0 - ax);
+
+        ++ptr;
+        for (; ptr != ptr_row_end; ++ptr)
+        {
+          float Ib = I2 * ax;
+          float I_interp = Ia + Ib;
+
+          *(it_value) = I_interp;
+
+          Ia = I2 - Ib;
+          I2 = *(ptr);
+          ++it_value;
+          ++counter;
+        }
       }
-    }
-  };
+    };
 
-  void interpImage_unsafe(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-                          std::vector<float> &value_interp)
-  {
-    if (img.type() != CV_8U)
-      std::runtime_error("img.type() != CV_8U");
-
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
-
-    const size_t n_pts = pts.size();
-    value_interp.resize(n_pts, -1.0);
-
-    std::vector<float>::iterator it_value = value_interp.begin();
-    std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-    for (; it_value != value_interp.end(); ++it_value, ++it_pt)
+    void interpImageSameRatioHorizontalRegularPatternArbitraryWindow(
+        const cv::Mat &img, const cv::Point2f &pt_center,
+        float ax, size_t half_left, size_t half_right, size_t half_up, size_t half_down,
+        std::vector<float> &value_interp)
     {
-      const cv::Point2f &pt = *it_pt;
+      /*
+      data order
+         0  1  2  3  4  5  6
+         7  8  9 10 11 12 13
+        14 15 16 17 18 19 20
+        21 22 23 24 25 26 27
+        28 29 30 31 32 33 34
+        35 36 37 38 39 40 41
+        42 43 44 45 46 47 48
+      */
+      /*
+        I1 I2 I3 I4 I5
+        J1 J2 J3 J4 J5
+        K1 K2 K3 K4 K5
 
-      const float uc = pt.x;
-      const float vc = pt.y;
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
+      // Initial
+        Ia = I1*(1-ax);
+        Ib = I2*ax;
+        I_interp = Ia + Ib; ( == I1*(1-ax) + I2*ax )
 
-      float ax = uc - u0;
-      float ay = vc - v0;
+      // Consecutive
+        Ia = I2 - Ib;
+        Ib = I3*ax;
+        I_interp = Ia + Ib; ( == I2*(1-ax) + I3*ax ) ...
+      */
+      if (img.type() != CV_8U)
+        std::runtime_error("img.type() != CV_8U");
+
+      const size_t n_cols = img.cols;
+      const size_t n_rows = img.rows;
+      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+
+      const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
+
+      const size_t win_size_horizontal = half_right + half_left + 1;
+      const size_t win_size_vertical = half_down + half_up + 1;
+
+      const size_t n_pts = win_size_horizontal * win_size_vertical;
+      value_interp.resize(n_pts, -1.0);
+
+      const unsigned char *ptr_row_start = ptr_img + (pt_center0.y - half_up) * n_cols + pt_center0.x - half_left;
+      const unsigned char *ptr_row_end = ptr_row_start + win_size_horizontal + 2; // TODO: Patch가 화면 밖으로 나갈때!
+      const unsigned char *ptr_row_final = ptr_row_start + (win_size_vertical)*n_cols;
+
+      int counter = 0;
+      std::vector<float>::iterator it_value = value_interp.begin();
+      for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols)
+      {
+        const unsigned char *ptr = ptr_row_start;
+        float I1 = *ptr;
+        float I2 = *(++ptr);
+        float Ia = I1 * (1.0 - ax);
+
+        ++ptr;
+        for (; ptr != ptr_row_end; ++ptr)
+        {
+          float Ib = I2 * ax;
+          float I_interp = Ia + Ib;
+
+          *(it_value) = I_interp;
+
+          Ia = I2 - Ib;
+          I2 = *(ptr);
+          ++it_value;
+          ++counter;
+        }
+      }
+    };
+
+    void interpImage(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+                            std::vector<float> &value_interp)
+    {
+      if (img.type() != CV_8U)
+        std::runtime_error("img.type() != CV_8U");
+
+      const size_t n_cols = img.cols;
+      const size_t n_rows = img.rows;
+      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+
+      const size_t n_pts = pts.size();
+      value_interp.resize(n_pts, -1.0);
+
+      std::vector<float>::iterator it_value = value_interp.begin();
+      std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
+      for (; it_value != value_interp.end(); ++it_value, ++it_pt)
+      {
+        const cv::Point2f &pt = *it_pt;
+
+        const float uc = pt.x;
+        const float vc = pt.y;
+        int u0 = (int)pt.x;
+        int v0 = (int)pt.y;
+
+        float ax = uc - u0;
+        float ay = vc - v0;
+        float axay = ax * ay;
+        int idx_I1 = v0 * n_cols + u0;
+
+        const unsigned char *ptr = ptr_img + idx_I1;
+        const float &I1 = *ptr;             // v_0n_colsu_0
+        const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
+        const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
+        const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
+
+        float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
+
+        *it_value = I_interp;
+      }
+    };
+
+    void interpImageSameRatio(
+        const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+        float ax, float ay,
+        std::vector<float> &value_interp)
+    {
+      if (img.type() != CV_8U)
+        std::runtime_error("img.type() != CV_8U");
+
+      const size_t n_cols = img.cols;
+      const size_t n_rows = img.rows;
+      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+
+      const size_t n_pts = pts.size();
+      value_interp.resize(n_pts, -1.0);
+
       float axay = ax * ay;
-      int idx_I1 = v0 * n_cols + u0;
 
-      const unsigned char *ptr = ptr_img + idx_I1;
-      const float &I1 = *ptr;             // v_0n_colsu_0
-      const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
-      const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
-      const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
+      std::vector<float>::iterator it_value = value_interp.begin();
+      std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
+      for (; it_value != value_interp.end(); ++it_value, ++it_pt)
+      {
+        const cv::Point2f &pt = *it_pt;
 
-      float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
+        const float uc = pt.x;
+        const float vc = pt.y;
+        int u0 = (int)pt.x;
+        int v0 = (int)pt.y;
 
-      *it_value = I_interp;
-    }
-  };
+        int idx_I1 = v0 * n_cols + u0;
 
-  void interpImageSameRatio_unsafe(
-      const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-      float ax, float ay,
-      std::vector<float> &value_interp)
-  {
-    if (img.type() != CV_8U)
-      std::runtime_error("img.type() != CV_8U");
+        const unsigned char *ptr = ptr_img + idx_I1;
+        const float &I1 = *ptr;             // v_0n_colsu_0
+        const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
+        const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
+        const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+        float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
 
-    const size_t n_pts = pts.size();
-    value_interp.resize(n_pts, -1.0);
+        *it_value = I_interp;
+      }
+    };
 
-    float axay = ax * ay;
-
-    std::vector<float>::iterator it_value = value_interp.begin();
-    std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-    for (; it_value != value_interp.end(); ++it_value, ++it_pt)
+    void interpImageSameRatioHorizontal(
+        const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+        float ax,
+        std::vector<float> &value_interp)
     {
-      const cv::Point2f &pt = *it_pt;
+      if (img.type() != CV_8U)
+        std::runtime_error("img.type() != CV_8U");
 
-      const float uc = pt.x;
-      const float vc = pt.y;
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
+      const size_t n_cols = img.cols;
+      const size_t n_rows = img.rows;
+      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
 
-      int idx_I1 = v0 * n_cols + u0;
+      const size_t n_pts = pts.size();
+      value_interp.resize(n_pts, -1.0);
 
-      const unsigned char *ptr = ptr_img + idx_I1;
-      const float &I1 = *ptr;             // v_0n_colsu_0
-      const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
-      const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
-      const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
+      std::vector<float>::iterator it_value = value_interp.begin();
+      std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
 
-      float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
+      for (; it_value != value_interp.end(); ++it_value, ++it_pt)
+      {
+        const cv::Point2f &pt = *it_pt;
 
-      *it_value = I_interp;
-    }
-  };
+        int u0 = (int)pt.x;
+        int v0 = (int)pt.y;
 
-  void interpImageSameRatioHorizontal_unsafe(
-      const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-      float ax,
-      std::vector<float> &value_interp)
-  {
-    if (img.type() != CV_8U)
-      std::runtime_error("img.type() != CV_8U");
+        int idx_I1 = v0 * n_cols + u0;
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+        const unsigned char *ptr = ptr_img + idx_I1;
+        const float &I1 = *ptr;     // v_0n_colsu_0
+        const float &I2 = *(++ptr); // v_0n_colsu_0 + 1
 
-    const size_t n_pts = pts.size();
-    value_interp.resize(n_pts, -1.0);
+        float I_interp = (I2 - I1) * ax + I1;
 
-    std::vector<float>::iterator it_value = value_interp.begin();
-    std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-
-    for (; it_value != value_interp.end(); ++it_value, ++it_pt)
-    {
-      const cv::Point2f &pt = *it_pt;
-
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
-
-      int idx_I1 = v0 * n_cols + u0;
-
-      const unsigned char *ptr = ptr_img + idx_I1;
-      const float &I1 = *ptr;     // v_0n_colsu_0
-      const float &I2 = *(++ptr); // v_0n_colsu_0 + 1
-
-      float I_interp = (I2 - I1) * ax + I1;
-
-      *it_value = I_interp;
-    }
+        *it_value = I_interp;
+      }
+    };
   };
 };
