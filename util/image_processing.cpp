@@ -1,3 +1,7 @@
+/*
+Copyright 2023 Changhyeon Kim
+*/
+
 #include "util/image_processing.h"
 
 namespace image_processing
@@ -16,8 +20,8 @@ namespace image_processing
 
     const float uc = pt.x;
     const float vc = pt.y;
-    int u0 = (int)pt.x;
-    int v0 = (int)pt.y;
+    int u0 = static_cast<int>(pt.x);
+    int v0 = static_cast<int>(pt.y);
 
     float ax = uc - u0;
     float ay = vc - v0;
@@ -60,8 +64,8 @@ namespace image_processing
 
       const float uc = pt.x;
       const float vc = pt.y;
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
+      int u0 = static_cast<int>(pt.x);
+      int v0 = static_cast<int>(pt.y);
 
       float ax = uc - u0;
       float ay = vc - v0;
@@ -110,8 +114,8 @@ namespace image_processing
 
       const float uc = pt.x;
       const float vc = pt.y;
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
+      int u0 = static_cast<int>(pt.x);
+      int v0 = static_cast<int>(pt.y);
 
       int idx_I1 = v0 * n_cols + u0;
 
@@ -154,8 +158,8 @@ namespace image_processing
       if (pt.x < 0 || pt.x > n_cols - 1 || pt.y < 0 || pt.y > n_rows - 1)
         continue;
 
-      int u0 = (int)pt.x;
-      int v0 = (int)pt.y;
+      int u0 = static_cast<int>(pt.x);
+      int v0 = static_cast<int>(pt.y);
 
       int idx_I1 = v0 * n_cols + u0;
 
@@ -192,7 +196,7 @@ namespace image_processing
 
     */
 
-    const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
+    const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
     const float ax = pt_center.x - pt_center0.x;
     const float ay = pt_center.y - pt_center0.y;
     const float axay = ax * ay;
@@ -203,7 +207,6 @@ namespace image_processing
 {
   namespace unsafe
   {
-
     void interpImageSameRatioHorizontalRegularPattern(
         const cv::Mat &img, const cv::Point2f &pt_center,
         float ax, size_t win_size,
@@ -243,9 +246,9 @@ namespace image_processing
       const size_t n_rows = img.rows;
       const unsigned char *ptr_img = img.ptr<unsigned char>(0);
 
-      const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
+      const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
 
-      const size_t half_win_size = (int)floor(win_size * 0.5);
+      const size_t half_win_size = static_cast<int>(floor(win_size * 0.5));
 
       const size_t n_pts = win_size * win_size;
       value_interp.resize(n_pts, -1.0);
@@ -316,7 +319,7 @@ namespace image_processing
       const size_t n_rows = img.rows;
       const unsigned char *ptr_img = img.ptr<unsigned char>(0);
 
-      const cv::Point2i pt_center0((int)pt_center.x, (int)pt_center.y);
+      const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
 
       const size_t win_size_horizontal = half_right + half_left + 1;
       const size_t win_size_vertical = half_down + half_up + 1;
@@ -354,7 +357,7 @@ namespace image_processing
     };
 
     void interpImage(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-                            std::vector<float> &value_interp)
+                     std::vector<float> &value_interp)
     {
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
@@ -374,8 +377,8 @@ namespace image_processing
 
         const float uc = pt.x;
         const float vc = pt.y;
-        int u0 = (int)pt.x;
-        int v0 = (int)pt.y;
+        int u0 = static_cast<int>(pt.x);
+        int v0 = static_cast<int>(pt.y);
 
         float ax = uc - u0;
         float ay = vc - v0;
@@ -419,8 +422,8 @@ namespace image_processing
 
         const float uc = pt.x;
         const float vc = pt.y;
-        int u0 = (int)pt.x;
-        int v0 = (int)pt.y;
+        int u0 = static_cast<int>(pt.x);
+        int v0 = static_cast<int>(pt.y);
 
         int idx_I1 = v0 * n_cols + u0;
 
@@ -458,8 +461,8 @@ namespace image_processing
       {
         const cv::Point2f &pt = *it_pt;
 
-        int u0 = (int)pt.x;
-        int v0 = (int)pt.y;
+        int u0 = static_cast<int>(pt.x);
+        int v0 = static_cast<int>(pt.y);
 
         int idx_I1 = v0 * n_cols + u0;
 
