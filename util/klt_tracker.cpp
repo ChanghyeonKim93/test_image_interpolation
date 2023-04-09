@@ -71,26 +71,26 @@ void KLTTracker::allocateAlignedMemory()
   upattern_dense_ = aligned_memory::malloc<float>(10000);
   vpattern_dense_ = aligned_memory::malloc<float>(10000);
 
-  upattern_sparse_ = aligned_memory::malloc<float>(2000);
-  vpattern_sparse_ = aligned_memory::malloc<float>(2000);
+  upattern_sparse_ = aligned_memory::malloc<float>(2500);
+  vpattern_sparse_ = aligned_memory::malloc<float>(2500);
 
-  buf_u_ = aligned_memory::malloc<float>(20000);
-  buf_v_ = aligned_memory::malloc<float>(20000);
-  buf_u_warp_ = aligned_memory::malloc<float>(20000);
-  buf_v_warp_ = aligned_memory::malloc<float>(20000);
+  buf_u_ = aligned_memory::malloc<float>(50000);
+  buf_v_ = aligned_memory::malloc<float>(50000);
+  buf_u_warp_ = aligned_memory::malloc<float>(50000);
+  buf_v_warp_ = aligned_memory::malloc<float>(50000);
 
-  buf_I1_ = aligned_memory::malloc<float>(20000);
-  buf_du1_ = aligned_memory::malloc<float>(20000);
-  buf_dv1_ = aligned_memory::malloc<float>(20000);
+  buf_I1_ = aligned_memory::malloc<float>(50000);
+  buf_du1_ = aligned_memory::malloc<float>(50000);
+  buf_dv1_ = aligned_memory::malloc<float>(50000);
 
-  buf_I2_ = aligned_memory::malloc<float>(20000);
-  buf_du2_ = aligned_memory::malloc<float>(20000);
-  buf_dv2_ = aligned_memory::malloc<float>(20000);
+  buf_I2_ = aligned_memory::malloc<float>(50000);
+  buf_du2_ = aligned_memory::malloc<float>(50000);
+  buf_dv2_ = aligned_memory::malloc<float>(50000);
 
-  buf_residual_ = aligned_memory::malloc<float>(20000);
-  buf_weight_ = aligned_memory::malloc<float>(20000);
+  buf_residual_ = aligned_memory::malloc<float>(50000);
+  buf_weight_ = aligned_memory::malloc<float>(50000);
  
-  err_ssd_ = aligned_memory::malloc<float>(20000);
-  err_ncc_ = aligned_memory::malloc<float>(20000);
-  mask_ = aligned_memory::malloc<bool>(20000);
+  err_ssd_ = aligned_memory::malloc<float>(50000);
+  err_ncc_ = aligned_memory::malloc<float>(50000);
+  mask_ = aligned_memory::malloc<bool>(50000);
 }

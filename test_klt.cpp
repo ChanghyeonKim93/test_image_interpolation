@@ -20,6 +20,8 @@ int main()
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;
 
+  KLTTracker klt_tracker;
+  
   timer::tic();
   size_t max_level = 4;
   std::vector<cv::Mat> img_pyr;
@@ -33,7 +35,6 @@ int main()
   }
   cv::waitKey(0);
 
-  KLTTracker klt_tracker;
 
   return 1;
 }
