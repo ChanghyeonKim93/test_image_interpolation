@@ -1,8 +1,38 @@
 #include "util/klt_tracker.h"
 
-KLTTracker::KLTTracker(){
+KLTTracker::KLTTracker()
+{
+  this->allocateAlignedMemory();
+}
 
-};
+KLTTracker::~KLTTracker()
+{
+  aligned_memory::free<float>(upattern_dense_);
+  aligned_memory::free<float>(vpattern_dense_);
+
+  aligned_memory::free<float>(upattern_sparse_);
+  aligned_memory::free<float>(vpattern_sparse_);
+
+  aligned_memory::free<float>(buf_u_);
+  aligned_memory::free<float>(buf_v_);
+  aligned_memory::free<float>(buf_u_warp_);
+  aligned_memory::free<float>(buf_v_warp_);
+
+  aligned_memory::free<float>(buf_I1_);
+  aligned_memory::free<float>(buf_du1_);
+  aligned_memory::free<float>(buf_dv1_);
+
+  aligned_memory::free<float>(buf_I2_);
+  aligned_memory::free<float>(buf_du2_);
+  aligned_memory::free<float>(buf_dv2_);
+
+  aligned_memory::free<float>(buf_residual_);
+  aligned_memory::free<float>(buf_weight_);
+
+  aligned_memory::free<float>(err_ssd_);
+  aligned_memory::free<float>(err_ncc_);
+  aligned_memory::free<bool>(mask_);
+}
 
 void KLTTracker::setMaxIteration(const size_t max_iter)
 {
@@ -32,7 +62,35 @@ void KLTTracker::track(const cv::Mat &img0, const cv::Mat &img1,
     {
       const cv::Point2f &pt0 = pts0[index];
       const cv::Point2f &pt_track = pts_track[index];
-
     }
   }
+}
+
+void KLTTracker::allocateAlignedMemory()
+{
+  upattern_dense_ = aligned_memory::malloc<float>(10000);
+  vpattern_dense_ = aligned_memory::malloc<float>(10000);
+
+  upattern_sparse_ = aligned_memory::malloc<float>(2000);
+  vpattern_sparse_ = aligned_memory::malloc<float>(2000);
+
+  buf_u_ = aligned_memory::malloc<float>(20000);
+  buf_v_ = aligned_memory::malloc<float>(20000);
+  buf_u_warp_ = aligned_memory::malloc<float>(20000);
+  buf_v_warp_ = aligned_memory::malloc<float>(20000);
+
+  buf_I1_ = aligned_memory::malloc<float>(20000);
+  buf_du1_ = aligned_memory::malloc<float>(20000);
+  buf_dv1_ = aligned_memory::malloc<float>(20000);
+
+  buf_I2_ = aligned_memory::malloc<float>(20000);
+  buf_du2_ = aligned_memory::malloc<float>(20000);
+  buf_dv2_ = aligned_memory::malloc<float>(20000);
+
+  buf_residual_ = aligned_memory::malloc<float>(20000);
+  buf_weight_ = aligned_memory::malloc<float>(20000);
+ 
+  err_ssd_ = aligned_memory::malloc<float>(20000);
+  err_ncc_ = aligned_memory::malloc<float>(20000);
+  mask_ = aligned_memory::malloc<bool>(20000);
 }

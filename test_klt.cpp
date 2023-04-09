@@ -33,5 +33,7 @@ int main()
   }
   cv::waitKey(0);
 
+  KLTTracker klt_tracker;
+
   return 1;
 }

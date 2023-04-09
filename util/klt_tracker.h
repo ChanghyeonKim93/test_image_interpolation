@@ -12,6 +12,8 @@
 
 #include "image_processing.h"
 
+#include "aligned_memory.h"
+
 class KLTTracker
 {
   using _KLT_numeric = float;
@@ -35,6 +37,7 @@ class KLTTracker
 
 public:
   KLTTracker();
+  ~KLTTracker();
 
 public:
   void setMaxIteration(const size_t max_iter);
@@ -46,9 +49,9 @@ public:
              const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
              bool is_use_initial_flow = false);
 
-  void trackHorizontal(const cv::Mat &img0, const cv::Mat &img1,
-                       const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
-                       bool is_use_initial_flow = false);
+  // void trackHorizontal(const cv::Mat &img0, const cv::Mat &img1,
+  //                      const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
+  //                      bool is_use_initial_flow = false);
 
 private:
   void allocateAlignedMemory();
@@ -58,31 +61,31 @@ private:
   size_t max_iter_;
 
 private:
-  float *upattern_dense_;
-  float *vpattern_dense_;
+  float *upattern_dense_ = nullptr;
+  float *vpattern_dense_ = nullptr;
 
-  float *upattern_sparse_;
-  float *vpattern_sparse_;
+  float *upattern_sparse_ = nullptr;
+  float *vpattern_sparse_ = nullptr;
 
-  float *buf_u_;
-  float *buf_v_;
-  float *buf_u_warp_;
-  float *buf_v_warp_;
+  float *buf_u_ = nullptr;
+  float *buf_v_ = nullptr;
+  float *buf_u_warp_ = nullptr;
+  float *buf_v_warp_ = nullptr;
 
-  float *buf_I1_;
-  float *buf_du1_;
-  float *buf_dv1_;
+  float *buf_I1_ = nullptr;
+  float *buf_du1_ = nullptr;
+  float *buf_dv1_ = nullptr;
 
-  float *buf_I2_;
-  float *buf_du2_;
-  float *buf_dv2_;
+  float *buf_I2_ = nullptr;
+  float *buf_du2_ = nullptr;
+  float *buf_dv2_ = nullptr;
 
-  float *buf_residual_;
-  float *buf_weight_;
+  float *buf_residual_ = nullptr;
+  float *buf_weight_ = nullptr;
 
-  float *err_ssd_;
-  float *err_ncc_;
-  float *mask_;
+  float *err_ssd_ = nullptr;
+  float *err_ncc_ = nullptr;
+  bool *mask_ = nullptr;
 
   // Maximum 28 elements// JtWJ = [
   /* 0, *, *, *, *, *;
