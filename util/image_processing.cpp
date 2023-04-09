@@ -201,6 +201,56 @@ namespace image_processing
     const float ay = pt_center.y - pt_center0.y;
     const float axay = ax * ay;
   };
+
+  void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst)
+  {
+    const size_t n_cols = img_src.cols;
+    const size_t n_rows = img_src.rows;
+
+    const size_t n_cols_half = n_cols >> 1;
+    const size_t n_rows_half = n_rows >> 1;
+    img_dst = cv::Mat(n_rows_half, n_cols_half, CV_8U);
+
+    // std::cout << img_src.size() << " --> " << img_dst.size() << std::endl;
+
+    const uchar *p_src = img_src.ptr<uchar>(0);
+    const uchar *p_src00 = p_src;
+    const uchar *p_src01 = p_src + 1;
+    const uchar *p_src10 = p_src + n_cols;
+    const uchar *p_src11 = p_src + n_cols + 1;
+    uchar *p_dst = img_dst.ptr<uchar>(0);
+    uchar *p_dst_end = p_dst + n_cols_half * n_rows_half;
+
+    while (p_dst != p_dst_end)
+    {
+      const uchar* p_src_row_end = p_src00 + n_cols;
+      for (; p_src00 != p_src_row_end; ++p_dst, p_src00 += 2, p_src01 += 2, p_src10 += 2, p_src11 += 2)
+      {
+        *p_dst = static_cast<uchar>( (ushort)(*p_src00 + *p_src01 + *p_src10 + *p_src11) >> 2);
+        // *p_dst = *p_src00;
+      }
+      p_src00 += n_cols;
+      p_src01 += n_cols;
+      p_src10 += n_cols;
+      p_src11 += n_cols;
+    }
+  }
+
+  void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                            const size_t max_level)
+  {
+    const size_t n_cols = img_src.cols;
+    const size_t n_rows = img_src.rows;
+
+    pyramid.resize(max_level);
+    img_src.copyTo(pyramid[0]);
+
+    for(size_t lvl = 1; lvl < max_level; ++lvl)
+    {
+      const cv::Mat& img_org = pyramid[lvl-1];
+      image_processing::pyrDown(img_org, pyramid[lvl]);
+    }
+  }
 };
 
 namespace image_processing

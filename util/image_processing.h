@@ -31,6 +31,11 @@ namespace image_processing
         const cv::Mat &img, const cv::Point2f &pt_center, size_t win_size,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
 
+    void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst);
+    void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                              const size_t max_level);
+
+
     namespace unsafe
     {
         void interpImage(
@@ -53,7 +58,7 @@ namespace image_processing
             float ax, size_t half_left, size_t half_right, size_t half_up, size_t half_down,
             std::vector<float> &value_interp);
     };
-    
+
     // inline void interpImageSameRatio_IntelSSE(
     //   const cv::Mat& img, const std::vector<cv::Point2f>& pts,
     //   float ax, float ay,

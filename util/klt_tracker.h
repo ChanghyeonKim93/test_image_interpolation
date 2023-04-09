@@ -38,8 +38,8 @@ public:
 
 public:
   void setMaxIteration(const size_t max_iter);
-  void setUseSparsePatch();
-  void setUseDensePatch();
+  // void setUseSparsePatch();
+  // void setUseDensePatch();
 
 public:
   void track(const cv::Mat &img0, const cv::Mat &img1,
@@ -55,6 +55,7 @@ private:
 
 private:
   size_t window_size_;
+  size_t max_iter_;
 
 private:
   float *upattern_dense_;
