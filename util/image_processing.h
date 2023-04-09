@@ -6,6 +6,7 @@
 
 namespace image_processing
 {
+    std::string type2str(const cv::Mat& img);
     /*
      I1 ax   1-ax I2
      ay   (v,u)
