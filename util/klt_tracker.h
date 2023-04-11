@@ -40,14 +40,14 @@ public:
   ~KLTTracker();
 
 public:
-  void setMaxIteration(const size_t max_iter);
-  // void setUseSparsePatch();
-  // void setUseDensePatch();
-
-public:
-  void track(const cv::Mat &img0, const cv::Mat &img1,
-             const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
-             bool is_use_initial_flow = false);
+  void trackForwardAdditive(const cv::Mat &img0, const cv::Mat &img1,
+                            const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
+                            const size_t max_level, const size_t window_size = 25, const size_t max_iteration = 30,
+                            const bool use_sparse_patch = false, const bool use_initial_flow = false);
+  // void trackInverseCompositional(const cv::Mat &img0, const cv::Mat &img1,
+  //                                const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
+  //                                size_t max_level, size_t max_iteration = 30,
+  //                                bool is_use_initial_flow = false);
 
   // void trackHorizontal(const cv::Mat &img0, const cv::Mat &img1,
   //                      const std::vector<cv::Point2f> &pts0, std::vector<cv::Point2f> &pts_track,
@@ -56,9 +56,8 @@ public:
 private:
   void allocateAlignedMemory();
 
-private:
-  size_t window_size_;
-  size_t max_iter_;
+  void generatePatchPixels(const size_t window_size,
+                           std::vector<cv::Point2f> &patch_pixels, const bool make_sparse_patch = false);
 
 private:
   float *upattern_dense_ = nullptr;

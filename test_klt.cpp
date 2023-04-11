@@ -20,8 +20,18 @@ int main()
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;
 
-  KLTTracker klt_tracker;
-  
+  /*
+    pyrDown: sampling vs. averaging
+    klt: forward vs. inverse
+    klt: dense patch vs. sparse patch
+  */
+  std::shared_ptr<KLTTracker> klt_tracker = std::make_shared<KLTTracker>();
+  std::vector<cv::Point2f> pts0;
+  std::vector<cv::Point2f> pts_track;
+  pts0.push_back({20, 20});
+  klt_tracker->trackForwardAdditive(img, img, pts0, pts_track, 4, 25, 30, false, false);
+  // klt_tracker->trackForwardAdditive(img, img, pts0, pts_track, 4, 25, 30, true, false);
+
   timer::tic();
   size_t max_level = 4;
   std::vector<cv::Mat> img_pyr;
@@ -34,7 +44,6 @@ int main()
     cv::imshow(str_winname, img_pyr[lvl]);
   }
   cv::waitKey(0);
-
 
   return 1;
 }

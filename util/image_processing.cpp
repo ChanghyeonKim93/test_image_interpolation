@@ -62,7 +62,7 @@ namespace image_processing
     float value_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
 
     return value_interp;
-  };
+  }
 
   void interpImage(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
                    std::vector<float> &value_interp, std::vector<bool> &mask_interp)
@@ -108,7 +108,7 @@ namespace image_processing
       *it_value = I_interp;
       *it_mask = true;
     }
-  };
+  }
 
   void interpImageSameRatio(
       const cv::Mat &img, const std::vector<cv::Point2f> &pts,
@@ -155,7 +155,7 @@ namespace image_processing
       *it_value = I_interp;
       *it_mask = true;
     }
-  };
+  }
 
   void interpImageSameRatioHorizontal(
       const cv::Mat &img, const std::vector<cv::Point2f> &pts,
@@ -197,7 +197,7 @@ namespace image_processing
       *it_value = I_interp;
       *it_mask = true;
     }
-  };
+  }
 
   void interpImageSameRatioRegularPattern(
       const cv::Mat &img, const cv::Point2f &pt_center, size_t win_size,
@@ -225,7 +225,7 @@ namespace image_processing
     const float ax = pt_center.x - pt_center0.x;
     const float ay = pt_center.y - pt_center0.y;
     const float axay = ax * ay;
-  };
+  }
 
   void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst)
   {
