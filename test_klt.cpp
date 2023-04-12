@@ -13,12 +13,24 @@
 #include "image_processing.h"
 #include "klt_tracker.h"
 
+#include "image_float.h"
+
 int main()
 {
   cv::Mat img = cv::imread("/home/kch/Lenna.png", cv::IMREAD_GRAYSCALE);
 
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;
+
+  Image<float> image(n_cols, n_rows);
+  image.fillZero();
+
+  Image<float> image2;
+  image2= image;
+
+  std::cout << image.data() << std::endl;
+  std::cout << image2.data() << std::endl;
+  
 
   /*
     pyrDown: sampling vs. averaging
@@ -44,6 +56,6 @@ int main()
     cv::imshow(str_winname, img_pyr[lvl]);
   }
   cv::waitKey(0);
-  
+
   return 1;
 }
