@@ -28,7 +28,7 @@ namespace timer{
             std::chrono::high_resolution_clock::time_point end_;
 
         public:
-            inline static std::chrono::high_resolution_clock::time_point ref_time_ = std::chrono::high_resolution_clock::now();
+			static std::chrono::high_resolution_clock::time_point ref_time_;
     };
 };
 #endif

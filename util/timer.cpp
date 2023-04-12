@@ -4,6 +4,7 @@ namespace timer{
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point finish  = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::duration gap = finish - start;
+	std::chrono::high_resolution_clock::time_point StopWatch::ref_time_ = std::chrono::high_resolution_clock::now();
 
     void tic(){
         start = std::chrono::high_resolution_clock::now();

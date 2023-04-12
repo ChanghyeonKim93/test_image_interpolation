@@ -2,7 +2,7 @@
 Copyright 2023 Changhyeon Kim
 */
 
-#include "util/image_processing.h"
+#include "image_processing.h"
 
 namespace image_processing
 {

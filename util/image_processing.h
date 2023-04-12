@@ -2,7 +2,7 @@
 #define _IMAGE_PROCESSING_H_
 
 #include <iostream>
-#include "opencv4/opencv2/core.hpp"
+#include "opencv2/core.hpp"
 
 namespace image_processing
 {

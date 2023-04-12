@@ -1,17 +1,19 @@
+#define _ENABLE_EXTENDED_ALIGNED_STORAGE
+
 #include <iostream>
 #include <vector>
 
-#include "opencv4/opencv2/core.hpp"
-#include "opencv4/opencv2/highgui.hpp"
-#include "opencv4/opencv2/imgproc.hpp"
-#include "opencv4/opencv2/imgcodecs.hpp"
+#include "opencv2/core.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/imgcodecs.hpp"
 
-#include "timer.h"
-#include "image_processing.h"
+#include "util/timer.h"
+#include "util/image_processing.h"
 
 int main()
 {
-  cv::Mat img = cv::imread("/home/kch/Lenna.png", cv::IMREAD_GRAYSCALE);
+  cv::Mat img = cv::imread("Lenna.png", cv::IMREAD_GRAYSCALE);
 
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;

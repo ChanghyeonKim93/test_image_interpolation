@@ -4,11 +4,11 @@
 #include <iostream>
 
 // Eigen
-#include <eigen3/Eigen/Dense>
+#include "Eigen/Dense"
 
 // OPENCV
-#include "opencv4/opencv2/core.hpp"
-#include "opencv4/opencv2/video/tracking.hpp"
+#include "opencv2/core.hpp"
+#include "opencv2/video/tracking.hpp"
 
 #include "image_processing.h"
 
