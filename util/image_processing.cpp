@@ -6,30 +6,47 @@ Copyright 2023 Changhyeon Kim
 
 namespace image_processing
 {
-	std::string type2str(const cv::Mat& img) 
-	{
-		std::string r;
-		int type = img.type();
+  std::string type2str(const cv::Mat &img)
+  {
+    std::string r;
+    int type = img.type();
 
-		uchar depth = type & CV_MAT_DEPTH_MASK;
-		uchar chans = 1 + (type >> CV_CN_SHIFT);
+    uchar depth = type & CV_MAT_DEPTH_MASK;
+    uchar chans = 1 + (type >> CV_CN_SHIFT);
 
-		switch (depth) {
-			case CV_8U:  r = "8U";   break;
-			case CV_8S:  r = "8S";   break;
-			case CV_16U: r = "16U";  break;
-			case CV_16S: r = "16S";  break;
-			case CV_32S: r = "32S";  break;
-			case CV_32F: r = "32F";  break;
-			case CV_64F: r = "64F";  break;
-			default:     r = "User"; break;
-		}
+    switch (depth)
+    {
+    case CV_8U:
+      r = "8U";
+      break;
+    case CV_8S:
+      r = "8S";
+      break;
+    case CV_16U:
+      r = "16U";
+      break;
+    case CV_16S:
+      r = "16S";
+      break;
+    case CV_32S:
+      r = "32S";
+      break;
+    case CV_32F:
+      r = "32F";
+      break;
+    case CV_64F:
+      r = "64F";
+      break;
+    default:
+      r = "User";
+      break;
+    }
 
-		r += "C";
-		r += (chans + '0');
+    r += "C";
+    r += (chans + '0');
 
-		return r;
-	}
+    return r;
+  }
 
   float interpImage(const cv::Mat &img, const cv::Point2f &pt)
   {
@@ -248,10 +265,10 @@ namespace image_processing
 
     while (p_dst != p_dst_end)
     {
-      const uchar* p_src_row_end = p_src00 + n_cols;
+      const uchar *p_src_row_end = p_src00 + n_cols;
       for (; p_src00 != p_src_row_end; ++p_dst, p_src00 += 2, p_src01 += 2, p_src10 += 2, p_src11 += 2)
       {
-        *p_dst = static_cast<uchar>( (ushort)(*p_src00 + *p_src01 + *p_src10 + *p_src11) >> 2);
+        *p_dst = static_cast<uchar>((ushort)(*p_src00 + *p_src01 + *p_src10 + *p_src11) >> 2);
         // *p_dst = *p_src00;
       }
       p_src00 += n_cols;
@@ -260,21 +277,99 @@ namespace image_processing
       p_src11 += n_cols;
     }
   }
-  void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size)
+
+  void padImageByMirroring(const cv::Mat &img_src, cv::Mat &img_dst, const size_t pad_size)
   {
     const size_t n_cols = img_src.cols;
     const size_t n_rows = img_src.rows;
+    const size_t pad_size_doubled = pad_size * 2;
+    const size_t n_cols_padded = n_cols + pad_size_doubled;
+    const size_t n_rows_padded = n_rows + pad_size_doubled;
 
-    const size_t n_cols_padded = n_cols + 2 * pad_size;
-    const size_t n_rows_padded = n_rows + 2 * pad_size;
+    img_dst = cv::Mat::zeros(n_rows_padded, n_cols_padded, img_src.type());
 
-    std::cout << "cols, rows    : " << n_cols << ", " << n_rows << std::endl;
-    std::cout << "cols, rows pad: " << n_cols_padded << ", " << n_rows_padded << std::endl;
-    
+    const uchar *ptr_src = img_src.ptr<uchar>(0);
+    const uchar *ptr_src_end = ptr_src + n_cols * n_rows;
+    uchar *ptr_dst = img_dst.ptr<uchar>(0) + pad_size * n_cols_padded + pad_size;
+
+    // copy original
+    const size_t size_of_row = sizeof(uchar) * n_cols;
+    for (; ptr_src < ptr_src_end; ptr_src += n_cols, ptr_dst += n_cols_padded)
+    {
+      memcpy(ptr_dst, ptr_src, size_of_row);
+    }
+
+    // mirror columns
+    uchar *ptr_dst_row = img_dst.ptr<uchar>(pad_size);
+    uchar *ptr_dst_row_end = img_dst.ptr<uchar>(n_rows_padded-pad_size);
+    for (; ptr_dst_row < ptr_dst_row_end; ptr_dst_row += n_cols_padded)
+    {
+      ptr_src = ptr_dst_row + pad_size;
+      ptr_src_end = ptr_dst_row + pad_size_doubled;
+      ptr_dst = ptr_dst_row + pad_size - 1;
+      for (; ptr_src < ptr_src_end; ++ptr_src, --ptr_dst)
+        *ptr_dst = *ptr_src;
+
+      ptr_src = ptr_dst_row + n_cols;
+      ptr_src_end = ptr_dst_row + n_cols + pad_size;
+      ptr_dst = ptr_dst_row + n_cols_padded - 1;
+      for (; ptr_src < ptr_src_end; ++ptr_src, --ptr_dst)
+        *ptr_dst = *ptr_src;
+    }
+
+    // upper pad
+    const size_t size_of_padded_row = sizeof(uchar) * n_cols_padded;
+    ptr_src = img_dst.ptr<uchar>(0) + pad_size * n_cols_padded;
+    ptr_src_end = img_dst.ptr<uchar>(0) + pad_size_doubled * n_cols_padded;
+    ptr_dst = img_dst.ptr<uchar>(0) + (pad_size - 1) * n_cols_padded;
+    for (; ptr_src < ptr_src_end; ptr_src += n_cols_padded, ptr_dst -= n_cols_padded)
+    {
+      memcpy(ptr_dst, ptr_src, size_of_padded_row);
+    }
+
+    // lower pad
+    ptr_src = img_dst.ptr<uchar>(0) + (n_rows_padded - pad_size_doubled) * n_cols_padded;
+    ptr_src_end = img_dst.ptr<uchar>(0) + (n_rows_padded -   pad_size) * n_cols_padded;
+    ptr_dst = img_dst.ptr<uchar>(0) + (n_rows_padded - 1) * n_cols_padded;
+    for (; ptr_src < ptr_src_end; ptr_src += n_cols_padded, ptr_dst -= n_cols_padded)
+    {
+      memcpy(ptr_dst, ptr_src, size_of_padded_row);
+    }
   }
 
+  // void pad_image(struct image_t *input, struct image_t *output, uint8_t expand)
+  // {
+  //   image_create(output, input->w + 2 * expand, input->h + 2 * expand, input->type);
+
+  //   uint8_t *input_buf = (uint8_t *)input->buf;
+  //   uint8_t *output_buf = (uint8_t *)output->buf;
+
+  //   // Skip first `expand` rows, iterate through next input->h rows
+  //   for (uint16_t i = expand; i != (output->h - expand); i++)
+  //   {
+
+  //     // Mirror first `expand` columns
+  //     for (uint8_t j = 0; j != expand; j++)
+  //       output_buf[i * output->w + (expand - 1 - j)] = input_buf[(i - expand) * input->w + j];
+
+  //     // Copy corresponding row values from input image
+  //     memcpy(&output_buf[i * output->w + expand], &input_buf[(i - expand) * input->w], sizeof(uint8_t) * input->w);
+
+  //     // Mirror last `expand` columns
+  //     for (uint8_t j = 0; j != expand; j++)
+  //       output_buf[i * output->w + output->w - expand + j] = output_buf[i * output->w + output->w - expand - 1 - j];
+  //   }
+
+  //   // Mirror first `expand` and last `expand` rows
+  //   for (uint8_t i = 0; i != expand; i++)
+  //   {
+  //     memcpy(&output_buf[(expand - 1) * output->w - i * output->w], &output_buf[expand * output->w + i * output->w], sizeof(uint8_t) * output->w);
+  //     memcpy(&output_buf[(output->h - expand) * output->w + i * output->w], &output_buf[(output->h - expand - 1) * output->w - i * output->w], sizeof(uint8_t) * output->w);
+  //   }
+  // }
+
   void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                            const size_t max_level)
+                            const size_t max_level, const bool use_padding, const size_t pad_size)
   {
     const size_t n_cols = img_src.cols;
     const size_t n_rows = img_src.rows;
@@ -282,14 +377,24 @@ namespace image_processing
     pyramid.resize(max_level);
     img_src.copyTo(pyramid[0]);
 
-    for(size_t lvl = 1; lvl < max_level; ++lvl)
+    for (size_t lvl = 1; lvl < max_level; ++lvl)
     {
-      const cv::Mat& img_org = pyramid[lvl-1];
-      image_processing::pyrDown(img_org, pyramid[lvl]);
+      const cv::Mat &img_org = pyramid[lvl - 1];
+      cv::Mat &img_dst = pyramid[lvl];
+      image_processing::pyrDown(img_org, img_dst);
+    }
 
-      size_t pad_size = 25;
-      padImageByMirroring(img_org, img_dst, pad_size);
-
+    if (use_padding)
+    {
+      if (pad_size == 0)
+      {
+        throw std::runtime_error("pad_size == 0");
+      }
+      for (int lvl = max_level - 1; lvl >= 0; --lvl)
+      {
+        cv::Mat img_tmp(pyramid[lvl]);
+        padImageByMirroring(img_tmp, pyramid[lvl], pad_size);
+      }
     }
   }
 };

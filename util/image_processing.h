@@ -4,6 +4,8 @@
 #include <iostream>
 #include "opencv4/opencv2/core.hpp"
 
+#include "util/timer.h"
+
 namespace image_processing
 {
     std::string type2str(const cv::Mat& img);
@@ -35,7 +37,7 @@ namespace image_processing
     void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst);
     void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size);
     void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                              const size_t max_level);
+                              const size_t max_level, const bool use_padding = false, const size_t pad_size = 0);
 
 
     namespace unsafe

@@ -35,7 +35,7 @@ int main()
   timer::tic();
   size_t max_level = 4;
   std::vector<cv::Mat> img_pyr;
-  image_processing::generateImagePyramid(img, img_pyr, max_level);
+  image_processing::generateImagePyramid(img, img_pyr, max_level, true, 25);
   timer::toc(1);
   for (int lvl = 0; lvl < max_level; ++lvl)
   {
