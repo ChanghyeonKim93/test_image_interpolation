@@ -38,6 +38,9 @@ namespace image_processing
     void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size);
     void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
                               const size_t max_level, const bool use_padding = false, const size_t pad_size = 0);
+    void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                              const size_t max_level, const bool use_padding, const size_t pad_size, 
+                              std::vector<cv::Mat>& pyramid_du, std::vector<cv::Mat>& pyramid_dv);
 
 
     namespace unsafe

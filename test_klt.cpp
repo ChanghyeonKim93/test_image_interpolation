@@ -33,9 +33,9 @@ int main()
   // klt_tracker->trackForwardAdditive(img, img, pts0, pts_track, 4, 25, 30, true, false);
 
   timer::tic();
-  size_t max_level = 4;
+  size_t max_level = 5;
   std::vector<cv::Mat> img_pyr;
-  image_processing::generateImagePyramid(img, img_pyr, max_level, true, 25);
+  image_processing::generateImagePyramid(img, img_pyr, max_level, true, 12);
   timer::toc(1);
   for (int lvl = 0; lvl < max_level; ++lvl)
   {
@@ -44,6 +44,6 @@ int main()
     cv::imshow(str_winname, img_pyr[lvl]);
   }
   cv::waitKey(0);
-
+  
   return 1;
 }

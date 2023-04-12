@@ -246,6 +246,9 @@ namespace image_processing
 
   void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst)
   {
+    if (img_src.type() != CV_8U)
+      throw std::runtime_error("In function " + std::string(__func__) + ", " + "img_src.type() != CV_8U");
+
     const size_t n_cols = img_src.cols;
     const size_t n_rows = img_src.rows;
 
@@ -301,7 +304,7 @@ namespace image_processing
 
     // mirror columns
     uchar *ptr_dst_row = img_dst.ptr<uchar>(pad_size);
-    uchar *ptr_dst_row_end = img_dst.ptr<uchar>(n_rows_padded-pad_size);
+    uchar *ptr_dst_row_end = img_dst.ptr<uchar>(n_rows_padded - pad_size);
     for (; ptr_dst_row < ptr_dst_row_end; ptr_dst_row += n_cols_padded)
     {
       ptr_src = ptr_dst_row + pad_size;
@@ -329,7 +332,7 @@ namespace image_processing
 
     // lower pad
     ptr_src = img_dst.ptr<uchar>(0) + (n_rows_padded - pad_size_doubled) * n_cols_padded;
-    ptr_src_end = img_dst.ptr<uchar>(0) + (n_rows_padded -   pad_size) * n_cols_padded;
+    ptr_src_end = img_dst.ptr<uchar>(0) + (n_rows_padded - pad_size) * n_cols_padded;
     ptr_dst = img_dst.ptr<uchar>(0) + (n_rows_padded - 1) * n_cols_padded;
     for (; ptr_src < ptr_src_end; ptr_src += n_cols_padded, ptr_dst -= n_cols_padded)
     {
@@ -397,7 +400,48 @@ namespace image_processing
       }
     }
   }
+
+  void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                            const size_t max_level, const bool use_padding, const size_t pad_size,
+                            std::vector<cv::Mat> &pyramid_du, std::vector<cv::Mat> &pyramid_dv)
+  {
+    const size_t n_cols = img_src.cols;
+    const size_t n_rows = img_src.rows;
+
+    pyramid.resize(max_level);
+    img_src.copyTo(pyramid[0]);
+
+    for (size_t lvl = 1; lvl < max_level; ++lvl)
+    {
+      const cv::Mat &img_org = pyramid[lvl - 1];
+      cv::Mat &img_dst = pyramid[lvl];
+      image_processing::pyrDown(img_org, img_dst);
+    }
+
+    if (use_padding)
+    {
+      if (pad_size == 0)
+      {
+        throw std::runtime_error("pad_size == 0");
+      }
+      for (int lvl = max_level - 1; lvl >= 0; --lvl)
+      {
+        cv::Mat img_tmp(pyramid[lvl]);
+        padImageByMirroring(img_tmp, pyramid[lvl], pad_size);
+      }
+    }
+
+    pyramid_du.resize(max_level);
+    pyramid_dv.resize(max_level);
+    for (size_t lvl = 0; lvl < max_level; ++lvl)
+    {
+      pyramid_du[lvl] = cv::Mat(pyramid[lvl].size(), CV_16S);
+      pyramid_dv[lvl] = cv::Mat(pyramid[lvl].size(), CV_16S);
+      
+    }
+  }
 };
+
 
 namespace image_processing
 {
