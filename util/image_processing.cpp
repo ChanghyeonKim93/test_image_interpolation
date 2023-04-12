@@ -260,6 +260,18 @@ namespace image_processing
       p_src11 += n_cols;
     }
   }
+  void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size)
+  {
+    const size_t n_cols = img_src.cols;
+    const size_t n_rows = img_src.rows;
+
+    const size_t n_cols_padded = n_cols + 2 * pad_size;
+    const size_t n_rows_padded = n_rows + 2 * pad_size;
+
+    std::cout << "cols, rows    : " << n_cols << ", " << n_rows << std::endl;
+    std::cout << "cols, rows pad: " << n_cols_padded << ", " << n_rows_padded << std::endl;
+    
+  }
 
   void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
                             const size_t max_level)
@@ -274,6 +286,10 @@ namespace image_processing
     {
       const cv::Mat& img_org = pyramid[lvl-1];
       image_processing::pyrDown(img_org, pyramid[lvl]);
+
+      size_t pad_size = 25;
+      padImageByMirroring(img_org, img_dst, pad_size);
+
     }
   }
 };

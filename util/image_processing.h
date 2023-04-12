@@ -31,8 +31,9 @@ namespace image_processing
     void interpImageSameRatioRegularPattern(
         const cv::Mat &img, const cv::Point2f &pt_center, size_t win_size,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
-
+    
     void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst);
+    void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size);
     void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
                               const size_t max_level);
 
