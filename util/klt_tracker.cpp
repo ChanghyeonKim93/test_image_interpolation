@@ -47,9 +47,10 @@ void KLTTracker::trackForwardAdditive(const cv::Mat &img0, const cv::Mat &img1,
   if (!use_initial_flow)
     pts_track = pts0;
 
-  std::vector<cv::Mat> imgpyr0, imgpyr1;
-  image_processing::generateImagePyramid(img0, imgpyr0, max_level);
-  image_processing::generateImagePyramid(img1, imgpyr1, max_level);
+  const size_t half_window_size = window_size * 0.5;
+  std::vector<cv::Mat> imgpyr0, imgpyr1, dupyr1, dvpyr1;
+  image_processing::generateImagePyramid(img0, imgpyr0, max_level, true, half_window_size);
+  image_processing::generateImagePyramid(img1, imgpyr1, max_level, true, half_window_size, dupyr1, dvpyr1);
 
   std::vector<cv::Point2f> patch_pixels;
   this->generatePatchPixels(window_size, patch_pixels, use_sparse_patch);

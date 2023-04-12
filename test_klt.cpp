@@ -19,12 +19,24 @@
 #include "util/image_processing.h"
 #include "util/klt_tracker.h"
 
+#include "image_float.h"
+
 int main()
 {
   cv::Mat img = cv::imread("Lenna.png", cv::IMREAD_GRAYSCALE);
 
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;
+
+  Image<float> image(n_cols, n_rows);
+  image.fillZero();
+
+  Image<float> image2;
+  image2= image;
+
+  std::cout << image.data() << std::endl;
+  std::cout << image2.data() << std::endl;
+  
 
   /*
     pyrDown: sampling vs. averaging
@@ -39,9 +51,9 @@ int main()
   // klt_tracker->trackForwardAdditive(img, img, pts0, pts_track, 4, 25, 30, true, false);
 
   timer::tic();
-  size_t max_level = 4;
+  size_t max_level = 5;
   std::vector<cv::Mat> img_pyr;
-  image_processing::generateImagePyramid(img, img_pyr, max_level);
+  image_processing::generateImagePyramid(img, img_pyr, max_level, true, 12);
   timer::toc(1);
   for (int lvl = 0; lvl < max_level; ++lvl)
   {

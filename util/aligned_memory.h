@@ -1,6 +1,7 @@
 #ifndef _ALIGNED_MEMORY_H_
 #define _ALIGNED_MEMORY_H_
 #include <iostream>
+#include <memory>
 
 #define ALIGN_BYTES 64 // AVX, AVX2 (256 bits = 32 Bytes), SSE4.2 (128 bits = 16 Bytes)
 /** \internal Like malloc, but the returned pointer is guaranteed to be 32-byte aligned.
