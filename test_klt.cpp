@@ -27,18 +27,25 @@ int main()
 {
   cv::Mat img = cv::imread("C:\\Users\\rlack\\Source\\Repos\\test_img_interp\\test_img_interp\\test_image_interpolation\\Lenna.png", cv::IMREAD_GRAYSCALE);
 
-  const size_t n_cols = img.cols;
-  const size_t n_rows = img.rows;
+  const size_t n_cols = 4;
+  const size_t n_rows = 4;
 
   Image<float> image(n_cols, n_rows);
-  image.fillZero();
+	std::cout << image << std::endl;
 
+	image.fillOne();
   Image<float> image2;
   image2 = image;
+	std::cout << image2 << std::endl;
 
-  std::cout << image.data() << std::endl;
-  std::cout << image2.data() << std::endl;
-  
+	image2.fill(2.0f);
+	std::cout << image2 << std::endl;
+
+	image2 = (image2 + image);
+	std::cout << image2 << std::endl;
+
+	image2 += image2;
+	std::cout << image2 << std::endl;
 
   /*
     pyrDown: sampling vs. averaging
