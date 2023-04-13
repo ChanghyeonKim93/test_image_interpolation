@@ -11,6 +11,7 @@ public:
   Image()
       : cols_(0), rows_(0), n_elem_(cols_ * rows_), data_(nullptr)
   {
+	// default constructor
   }
   Image(const size_t n_rows, const size_t n_cols)
       : cols_(n_cols), rows_(n_rows), n_elem_(cols_ * rows_), data_(nullptr)
@@ -79,7 +80,40 @@ public:
   // operator=
   // operator+
   // operator-
-  
+	Image<_data_type>& operator=(const Image<_data_type>& input)
+	{
+		// If the size is same && data_ is allocated, just copy.
+		if (this->cols_ == input.cols_ && this->rows_ == input.rows_ && this->n_elem_ == input.n_elem_)
+		{
+			if (!data_)
+				data_ = aligned_memory::malloc<_data_type>(n_elem_);
+			else
+				memcpy(this->data_, input.data_, sizeof(float)*this->n_elem_);
+		}
+		else
+		{
+			this->cols_ = input.cols_;
+			this->rows_ = input.rows_;
+			this->n_elem_ = input.n_elem_;
+			if (!data_)
+			{
+				aligned_memory::free(data_);
+				data_ = aligned_memory::malloc<_data_type>(n_elem_);
+				memcpy(this->data_, input.data_, sizeof(float)*this->n_elem_);
+			}
+		}
+		return *this;
+	}
+	/*Image<_data_type> operator+(const Image<_data_type>& input)
+	{
+		Image<_data_type> dst(input.row, input.col);
+
+		return 
+	}
+	Image<_data_type> operator-(const Image<_data_type>& input)
+	{
+		return
+	}*/
 
 private:
   size_t cols_;

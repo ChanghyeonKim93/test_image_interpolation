@@ -1,3 +1,5 @@
+#define _ENABLE_EXTENDED_ALIGNED_STORAGE
+
 #include <iostream>
 #include <vector>
 #include <string>
@@ -19,11 +21,11 @@
 #include "util/image_processing.h"
 #include "util/klt_tracker.h"
 
-#include "image_float.h"
+#include "util/image_float.h"
 
 int main()
 {
-  cv::Mat img = cv::imread("Lenna.png", cv::IMREAD_GRAYSCALE);
+  cv::Mat img = cv::imread("C:\\Users\\rlack\\Source\\Repos\\test_img_interp\\test_img_interp\\test_image_interpolation\\Lenna.png", cv::IMREAD_GRAYSCALE);
 
   const size_t n_cols = img.cols;
   const size_t n_rows = img.rows;
@@ -32,7 +34,7 @@ int main()
   image.fillZero();
 
   Image<float> image2;
-  image2= image;
+  image2 = image;
 
   std::cout << image.data() << std::endl;
   std::cout << image2.data() << std::endl;
