@@ -4,6 +4,7 @@
 #include <iostream>
 #include "aligned_memory.h"
 
+// - Image class. It allocates 'aligned memory'.
 template <typename _data_type>
 class Image
 {
@@ -11,10 +12,9 @@ public:
   Image()
       : rows_(0), cols_(0), n_elem_(cols_ * rows_), data_(nullptr)
   {
-	// default constructor
   }
   Image(const size_t n_rows, const size_t n_cols)
-      : rows_(n_rows), cols_(n_cols), n_elem_(cols_ * rows_), data_(nullptr)
+    : rows_(n_rows), cols_(n_cols), n_elem_(cols_ * rows_), data_(nullptr)
   {
     data_ = aligned_memory::malloc<_data_type>(n_elem_);
 		this->fillZero();
@@ -37,26 +37,32 @@ public:
 
 public:
 	_data_type *data() const { return data_; };
-	_data_type *ptr(const size_t row_number) const 
+	_data_type *getPtr(const size_t row_number) const 
 	{ 
-		const size_t index = row_number * cols_;
-		if (index >= n_elem_) {
-			throw std::runtime_error("In function " + std::string(__func__) + ", " + "index >=  n_elem_)");
+		if (row_number >= rows_) {
+			throw std::runtime_error("In function " + std::string(__func__) + ", " + "row_number >= rows_");
 			return nullptr;
 		}
-		return (data_ + index);
-	};
-	_data_type *ptr(const size_t row_number, const size_t col_number) const 
+		return (data_ + row_number * cols_);
+	}
+	_data_type *getPtr(const size_t row_number, const size_t col_number) const 
 	{
+		if(row_number >= rows_)
+			throw std::runtime_error("In function " + std::string(__func__) + ", " + "row_number >= rows_");
+		if (col_number >= cols_)
+			throw std::runtime_error("In function " + std::string(__func__) + ", " + "col_number >= cols_");
+
 		const size_t index = row_number * cols_ + col_number;
 		if (index >= n_elem_) {
-			throw std::runtime_error("In function " + std::string(__func__) + ", " + "index >=  n_elem_)");
+			throw std::runtime_error("In function " + std::string(__func__) + ", " + "index >=  n_elem_");
 			return nullptr;
 		}
 		return (data_ + index);
-	};
+	}
   const size_t col() const { return cols_; };
   const size_t row() const { return rows_; };
+	
+public:
   void fillZero()
   {
     if (data_ != nullptr)
@@ -89,7 +95,7 @@ public:
   }
 
 public:
-  void copyTo(Image<_data_type> &dst)
+  void copyTo(Image<_data_type> &dst) const
   {
     dst.cols_ = this->cols_;
     dst.rows_ = this->rows_;
@@ -234,7 +240,6 @@ public:
 				std::cout << "]\n";
 			}
 		}
-		
 		return output_stream;
 	}
 
