@@ -23,13 +23,21 @@
 
 #include "util/image_float.h"
 
+#include "util/object_pool.h"
+
+struct Node
+{
+	float x;
+	float y;
+};
+
 int main()
 {
 	try{
 		cv::Mat img = cv::imread("C:\\Users\\rlack\\Source\\Repos\\test_img_interp\\test_img_interp\\test_image_interpolation\\Lenna.png", cv::IMREAD_GRAYSCALE);
 
-		const size_t n_cols = 4;
-		const size_t n_rows = 4;
+		const size_t n_cols = 8;
+		const size_t n_rows = 8;
 
 		Image<float> image(n_cols, n_rows);
 		std::cout << image << std::endl;
@@ -48,8 +56,8 @@ int main()
 		image2 += image2;
 		std::cout << image2 << std::endl;
 
-		Image<float> im;
-		float* ptr = im.getPtr(0);
+		ObjectPool<Node> node_pool(1000);
+
 
 		/*
 			pyrDown: sampling vs. averaging

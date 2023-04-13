@@ -108,6 +108,13 @@ public:
   }
 
 public:
+	// 기존 데이터 존재
+	// ..대입 이미지가 같은 크기 : 데이터 복사
+	// ..대입 이미지가 다른 크기 : free -> malloc -> 데이터 복사
+	// ....대입 이미지 크기 < 피대입 이미지 크기: 공간 전체 n_cols, n_rows 
+	// ....대입 이미지가 큰 경우   : 
+	// 기존 데이터 없음
+	// ..malloc -> 데이터 복사
 	Image<_data_type>& operator=(const Image<_data_type>& rhs)
 	{
 
