@@ -23,18 +23,11 @@
 
 #include "util/image_float.h"
 
-#include "util/object_pool.h"
-
-struct Node
-{
-	float x;
-	float y;
-};
-
 int main()
 {
 	try{
-		cv::Mat img = cv::imread("C:\\Users\\rlack\\Source\\Repos\\test_img_interp\\test_img_interp\\test_image_interpolation\\Lenna.png", cv::IMREAD_GRAYSCALE);
+		// cv::Mat img = cv::imread("C:\\Users\\rlack\\Source\\Repos\\test_img_interp\\test_img_interp\\test_image_interpolation\\Lenna.png", cv::IMREAD_GRAYSCALE);
+ 		cv::Mat img = cv::imread("/home/kch/Documents/test_image_interpolation/Lenna.png", cv::IMREAD_GRAYSCALE);
 
 		const size_t n_cols = 8;
 		const size_t n_rows = 8;

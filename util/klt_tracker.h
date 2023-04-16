@@ -4,7 +4,7 @@
 #include <iostream>
 
 // Eigen
-#include "Eigen/Dense"
+#include "eigen3/Eigen/Dense"
 
 // OPENCV
 #include "opencv2/core.hpp"
@@ -60,44 +60,48 @@ private:
                            std::vector<cv::Point2f> &patch_pixels, const bool make_sparse_patch = false);
 
 private:
-  float *upattern_dense_ = nullptr;
-  float *vpattern_dense_ = nullptr;
+  struct BufferSimd{
+    float *upattern_dense_ = nullptr;
+    float *vpattern_dense_ = nullptr;
 
-  float *upattern_sparse_ = nullptr;
-  float *vpattern_sparse_ = nullptr;
+    float *upattern_sparse_ = nullptr;
+    float *vpattern_sparse_ = nullptr;
 
-  float *buf_u_ = nullptr;
-  float *buf_v_ = nullptr;
-  float *buf_u_warp_ = nullptr;
-  float *buf_v_warp_ = nullptr;
+    float *buf_u_ = nullptr;
+    float *buf_v_ = nullptr;
+    float *buf_u_warp_ = nullptr;
+    float *buf_v_warp_ = nullptr;
 
-  float *buf_I1_ = nullptr;
-  float *buf_du1_ = nullptr;
-  float *buf_dv1_ = nullptr;
+    float *buf_I1_ = nullptr;
+    float *buf_du1_ = nullptr;
+    float *buf_dv1_ = nullptr;
 
-  float *buf_I2_ = nullptr;
-  float *buf_du2_ = nullptr;
-  float *buf_dv2_ = nullptr;
+    float *buf_I2_ = nullptr;
+    float *buf_du2_ = nullptr;
+    float *buf_dv2_ = nullptr;
 
-  float *buf_residual_ = nullptr;
-  float *buf_weight_ = nullptr;
+    float *buf_residual_ = nullptr;
+    float *buf_weight_ = nullptr;
 
-  float *err_ssd_ = nullptr;
-  float *err_ncc_ = nullptr;
-  bool *mask_ = nullptr;
+    float *err_ssd_ = nullptr;
+    float *err_ncc_ = nullptr;
+    bool *mask_ = nullptr;
 
-  // Maximum 28 elements// JtWJ = [
-  /* 0, *, *, *, *, *;
-     1, 6, *, *, *, *;
-     2, 7,11, *, *, *;
-     3, 8,12,15, *, *;
-     4, 9,13,16,18, *;
-     5,10,14,17,19,20];
-     JtWr = [21,22,23,24,25,26]^t
-     err = [27];
-  */
-  float *SSEData; // [4 * 28]
-  float *AVXData; // [8 * 28]
+    // Maximum 28 elements// JtWJ = [
+    /* 0, *, *, *, *, *;
+      1, 6, *, *, *, *;
+      2, 7,11, *, *, *;
+      3, 8,12,15, *, *;
+      4, 9,13,16,18, *;
+      5,10,14,17,19,20];
+      JtWr = [21,22,23,24,25,26]^t
+      err = [27];
+    */
+    float *SSEData; // [4 * 28]
+    float *AVXData; // [8 * 28]
+  };
+  
+  BufferSimd buffer_simd_;
 
 private:
   // update = -JtWJ.inv()*JtWr (update = mJtWJ.ldlt.solve(JtWr))

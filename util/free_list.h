@@ -2,53 +2,55 @@
 #define _FREE_LIST_H_
 #include <iostream>
 
-template<typename T>
+template <typename T>
 class FreeList
 {
-	FreeList() 
-		: ptr_head_(nullptr)
+	FreeList()
+			: ptr_head_(nullptr), num_of_available_object_(0), num_of_total_object_(0)
 	{
-
 	}
 
-	T* getObject()
+	T *getObject()
 	{
+		ObjectWrapper *ow_new;
 		if (ptr_head_ == nullptr)
 		{
-			// free list에 없으면 heap에서 할당한 객체를 리턴합니다.
-			Item* item_new = new Item();
-			item_new->ptr_next_ = ptr_head_;
-			ptr_head_ = item_new;
-			return &item_new->object;
+			++num_of_total_object_;
+			ow_new = new ObjectWrapper(); 
+			ow_new->ptr_next_ = nullptr;
+			ptr_head_ = ow_new;
 		}
 		else
 		{
-			// free list에 있으면 head에서 꺼내서 리턴합니다
-			T* object_old = ptr_head_;
-			ptr_head_ = ptr_head_->ptr_next_;
-			return &object_old->object;
+			ObjectWrapper *ow_new = ptr_head_;
+			ptr_head_ = ow_new->ptr_next_;
 		}
+		return ow_new->object;
 	}
 
-	void returnObject(T* object)
+	void returnObject(T *object)
 	{
-		// 사용자가 사용을 다 마친 객체를 반환하는 것은 간단합니다. 그냥 free list에 넣읍시다.
-		// 사용자의 객체는 FreeList::Item 안에 있던 객체의 주소입니다.
-		// 이것을 소유한 FreeList::Item 자체의 주소를 얻어 옵시다.
-		Item* listItem = (Item*)(((char*)object) - offsetof(Item, m_item));
+		ObjectWrapper *listItem = (Item *)(((char *)object) - offsetof(Item, m_item));
 		listItem->ptr_next_ = ptr_head_;
 		ptr_head_ = listItem;
 	}
 
 private:
-	struct Item
+	class ObjectWrapper
 	{
-		T object; // 객체
-		Item* ptr_next_; // 다음 free list를 가리킨다.
+	public:
+		ObjectWrapper() { object = std::shared_ptr<T>(); } // default constructor is needed.
+		~ObjectWrapper() {}
+
+	private:
+		T *object;								//
+		ObjectWrapper *ptr_next_; // free list
 	};
 
-	T* ptr_head_; // 첫 객체
-};
+	ObjectWrapper *ptr_head_; // The first list.
 
+	size_t num_of_total_object_;
+	size_t num_of_available_object_;
+};
 
 #endif
