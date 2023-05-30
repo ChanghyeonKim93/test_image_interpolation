@@ -16,7 +16,11 @@ set(SRC ${SRC}
  util/timer.cpp
  util/image_processing.cpp
 #  util/klt_tracker.cpp
+
+ util/converter.cpp
+ 
  util/feature_extractor.cpp
+ util/feature_matcher.cpp
 )
 
 include_directories(${INCLUDE_DIRS})

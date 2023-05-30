@@ -208,115 +208,6 @@ void FeatureExtractor::extractORBwithBinning(const cv::Mat& img, PixelVec& pts_e
 	// std::cout << " - FEATURE_EXTRACTOR - 'extractORBwithBinning' - # detected pts : " << pts_extracted.size() << std::endl;
 };
 
-void FeatureExtractor::extractORBwithBinning_fast(const cv::Mat& img, PixelVec& pts_extracted, bool flag_nonmax)
-{
-	// INPUT IMAGE MUST BE 'CV_8UC1' image.
-	cv::Mat img_in;
-	if (img.type() != CV_8UC1) {
-		img.convertTo(img_in, CV_8UC1);
-		std::cout << "in extractor, image is converted to the CV_8UC1.\n";
-	}
-	else 
-		img_in = img;
-
-	// Reset the index bins
-	for(IndexBin& v : index_bins_)
-	{
-		v.index_.resize(0);
-		v.max_score_ = -1;
-	}
-
-	int n_cols = img_in.cols;
-	int n_rows = img_in.rows;
-
-	int overlap = floor(1 * params_orb_.EdgeThreshold);
-
-	std::vector<cv::KeyPoint> fts;
-	fts.reserve(30000); 
-
-	pts_extracted.resize(0);
-	pts_extracted.reserve(2000);
-
-	// detect orb feature for the whole image.
-	extractor_orb_->detect(img_in, fts);
-
-	// Bucketing.
-	if(flag_nonmax_)
-	{
-		// Reset the index bins
-		for(IndexBin& v : index_bins_)
-			v.index_max_ = -1;
-
-		for(int i = 0; i < fts.size(); ++i)
-		{
-			const cv::KeyPoint& ft = fts[i];
-
-			unsigned int u = (int)floor(ft.pt.x * weight_bin_->inv_u_step_);
-			unsigned int v = (int)floor(ft.pt.y * weight_bin_->inv_v_step_);
-
-			int bin_idx = v * n_bins_u_ + u;
-			if( weight_bin_->weight[bin_idx] == 0 ||
-				u < 0 || u >= n_bins_u_ ||
-				v < 0 || v >= n_bins_v_ ) 
-				continue;
-
-			// std::cout << i << "-th point, uv: " << u << ", " << v << std::endl;
-			
-			// Push Point in the
-			IndexBin& bin_tmp = index_bins_[bin_idx];
-			if(bin_tmp.max_score_ < ft.response)
-			{
-				bin_tmp.index_max_ = i;
-				bin_tmp.max_score_ = ft.response;
-			}
-		}
-
-		// Make 
-		for(int j = 0; j < index_bins_.size(); ++j)
-		{
-			if(index_bins_[j].index_max_ > -1 && weight_bin_->weight[j] > 0)
-				pts_extracted.push_back(fts[index_bins_[j].index_max_].pt);
-		}
-
-		std::cout << "# pts (extracted): " << pts_extracted.size() << std::endl;
-	}
-	else
-	{
-		for(int i = 0; i < fts.size(); ++i)
-		{
-			const cv::KeyPoint& ft = fts[i];
-
-			unsigned int u = (int)floor(ft.pt.x * weight_bin_->inv_u_step_);
-			unsigned int v = (int)floor(ft.pt.y * weight_bin_->inv_v_step_);
-
-			int bin_idx = v * n_bins_u_ + u;
-			if( weight_bin_->weight[bin_idx] == 0 ||
-				u < 0 || u >= n_bins_u_ ||
-				v < 0 || v >= n_bins_v_ ) 
-				continue;
-
-			// std::cout << i << "-th point, uv: " << u << ", " << v << std::endl;
-			
-			// Push Point in the
-			index_bins_[bin_idx].index_.push_back(i);
-
-			// Make 
-			for(int j = 0; j < index_bins_.size(); ++j)
-			{
-				const std::vector<int>& index_vec = index_bins_[j].index_;
-				for(int i = 0; i < index_vec.size(); ++i)
-				{
-					pts_extracted.push_back(fts[index_vec[i]].pt);
-				}
-			}
-
-			std::cout << "# pts (extracted): " << pts_extracted.size() << std::endl;
-		}
-	}
-	
-
-};
-
 
 void FeatureExtractor::extractAndComputeORB(const cv::Mat& img, std::vector<cv::KeyPoint>& kpts_extracted, std::vector<cv::Mat>& desc_extracted) {
 	// INPUT IMAGE MUST BE CV_8UC1 image.
@@ -337,7 +228,102 @@ void FeatureExtractor::extractAndComputeORB(const cv::Mat& img, std::vector<cv::
 	for(size_t index = 0; index < n_pts; ++index) {
 		desc_extracted[index] = desc_image.row(index);
 	}	
-};
+}
+
+void FeatureExtractor::extractAndComputORBwithBinning(
+	const cv::Mat& img, const int n_bins_u, const int n_bins_v, const int n_maximum_feature_per_bin,
+	std::vector<cv::KeyPoint>& kpts_extracted, std::vector<cv::Mat>& desc_extracted) {
+	cv::Mat img_in;
+	if (img.type() != CV_8UC1) {
+		img.convertTo(img_in, CV_8UC1);
+		std::cout << "in extractor, image is converted to the CV_8UC1.\n";
+	}
+	else img_in = img;
+
+	const int n_cols = img_in.cols;
+	const int n_rows = img_in.rows;
+	const double inv_n_cols = 1.0 / static_cast<double>(n_cols);
+	const double inv_n_rows = 1.0 / static_cast<double>(n_rows);
+
+	const int n_total_bins = n_bins_u * n_bins_v;
+	
+	// extract all features
+	cv::Mat desc_all_cv;
+	std::vector<cv::KeyPoint> kpts_all;
+	std::vector<cv::Mat> desc_all;
+	extractor_orb_->detectAndCompute(img_in, cv::noArray(), kpts_all, desc_all_cv);
+
+	const size_t n_pts = kpts_all.size();
+	if(n_pts == 0) return;
+
+	desc_all.resize(n_pts);
+	for(size_t i = 0; i < n_pts; ++i) {
+		desc_all[i] = desc_all_cv.row(i);
+	}
+
+	// Index Bucketing
+	struct IndexAndResponse {
+		size_t index;
+		float response;
+	};
+
+	std::vector<std::vector<IndexAndResponse>> index_and_response_bins(n_total_bins);
+	for(size_t index_feature = 0; index_feature < n_pts; ++index_feature) {
+		const cv::KeyPoint& kpt = kpts_all[index_feature];
+
+		const double bin_size_column = static_cast<double>(n_cols) / static_cast<double>(n_bins_u);
+		const double bin_size_row = static_cast<double>(n_rows) / static_cast<double>(n_bins_v);
+		const double inverse_bin_size_column = 1.0 / bin_size_column;
+		const double inverse_bin_size_row = 1.0 / bin_size_row;
+
+		const int bin_column = static_cast<int>(kpt.pt.x * inverse_bin_size_column);
+		const int bin_row = static_cast<int>(kpt.pt.y * inverse_bin_size_row);
+
+		if(bin_column < 0 || bin_column >= n_bins_u || bin_row < 0 || bin_row >= n_bins_v)
+			continue;
+
+		const size_t index_bin = bin_column + n_bins_u * bin_row;
+		index_and_response_bins[index_bin].push_back({index_feature, kpt.response});
+	}
+
+	// sort and remain fixed number of features per bin
+	auto compare_functor = [](const IndexAndResponse& a, const IndexAndResponse& b) {
+		return a.response < b.response;
+	};
+	
+	if(n_maximum_feature_per_bin > 1) {
+		for(size_t index_bin = 0; index_bin < n_total_bins; ++index_bin) {
+			std::vector<IndexAndResponse>& indexes_and_responses = index_and_response_bins[index_bin];
+
+			if(indexes_and_responses.size() == 0) continue;
+
+			if(indexes_and_responses.size() > 1) {
+				std::sort(indexes_and_responses.begin(), indexes_and_responses.end(), compare_functor);
+				if(indexes_and_responses.size() > n_maximum_feature_per_bin)
+					indexes_and_responses.resize(n_maximum_feature_per_bin);
+			}
+		}
+	}
+
+	// Get features
+	kpts_extracted.resize(0);
+	desc_extracted.resize(0);
+	kpts_extracted.reserve(n_total_bins);
+	desc_extracted.reserve(n_total_bins);
+
+	for(const std::vector<IndexAndResponse>& indexes_and_responses : index_and_response_bins) {
+		if(indexes_and_responses.empty()) continue;
+
+		for(const IndexAndResponse& index_and_response : indexes_and_responses) {
+			const cv::KeyPoint& kpt = kpts_all[index_and_response.index];
+			const cv::Mat& desc = desc_all[index_and_response.index];
+			kpts_extracted.push_back(kpt);
+			desc_extracted.push_back(desc);
+		}
+	}
+
+	std::cout << "all / selected: " << kpts_all.size() << ", " << kpts_extracted.size() << std::endl;
+}
 
 void FeatureExtractor::setNonmaxSuppression(bool flag_on) {
 	flag_nonmax_ = true;

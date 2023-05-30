@@ -8,6 +8,8 @@
 #include <string>
 #include <algorithm>
 
+#include <queue>
+
 // ROS eigen
 #include "eigen3/Eigen/Dense"
 
@@ -41,6 +43,7 @@ struct ParamsORB {
 
 struct WeightBin {
 	std::vector<int> weight ;
+  std::vector<std::priority_queue<std::pair<int, float>>> index_per_bin;
 	std::vector<int> u_bound;
 	std::vector<int> v_bound;
 	int n_bins_u;
@@ -186,7 +189,9 @@ public:
 	void extractORBwithBinning_fast(const cv::Mat& img, PixelVec& pts_extracted, bool flag_nonmax);
 
 	void extractAndComputeORB(const cv::Mat& img, std::vector<cv::KeyPoint>& kpts_extracted, std::vector<cv::Mat>& desc_extracted);
-	void extractAndComputORBwithBinning(const cv::Mat& img, std::vector<cv::KeyPoint>& kpts_extracted, cv::Mat& desc_extracted);
+	void extractAndComputORBwithBinning(
+		const cv::Mat& img, const int n_bins_u, const int n_bins_v, const int n_maximum_feature_per_bin, 
+		std::vector<cv::KeyPoint>& kpts_extracted, std::vector<cv::Mat>& desc_extracted);
 
 public:
 	void setNonmaxSuppression(bool flag_on);
