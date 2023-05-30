@@ -482,6 +482,7 @@ namespace image_processing
       if (!(win_size & 0x01))
         std::runtime_error("'win_size' should be an odd number!");
 
+      const double one_minus_ax = 1.0 - ax; 
       const size_t n_cols = img.cols;
       const size_t n_rows = img.rows;
       const unsigned char *ptr_img = img.ptr<unsigned char>(0);
@@ -504,7 +505,7 @@ namespace image_processing
         const unsigned char *ptr = ptr_row_start;
         float I1 = *ptr;
         float I2 = *(++ptr);
-        float Ia = I1 * (1.0 - ax);
+        float Ia = I1 * one_minus_ax;
 
         ++ptr;
         for (; ptr != ptr_row_end; ++ptr)
@@ -555,6 +556,7 @@ namespace image_processing
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
 
+      const double one_minus_ax = 1.0 - ax; 
       const size_t n_cols = img.cols;
       const size_t n_rows = img.rows;
       const unsigned char *ptr_img = img.ptr<unsigned char>(0);
@@ -578,7 +580,7 @@ namespace image_processing
         const unsigned char *ptr = ptr_row_start;
         float I1 = *ptr;
         float I2 = *(++ptr);
-        float Ia = I1 * (1.0 - ax);
+        float Ia = I1 * one_minus_ax;
 
         ++ptr;
         for (; ptr != ptr_row_end; ++ptr)

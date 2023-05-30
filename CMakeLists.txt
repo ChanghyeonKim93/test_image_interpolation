@@ -15,7 +15,8 @@ set(INCLUDE_DIRS ${INCLUDE_DIRS} util)
 set(SRC ${SRC} 
  util/timer.cpp
  util/image_processing.cpp
- util/klt_tracker.cpp
+#  util/klt_tracker.cpp
+ util/feature_extractor.cpp
 )
 
 include_directories(${INCLUDE_DIRS})
@@ -26,6 +27,10 @@ target_include_directories(test_interp PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR}
 # target_link_libraries(test_interp PUBLIC ${CERES_LIBRARIES})
 # target_include_directories(test_interp PUBLIC ${CERES_INCLUDE_DIRS})
 
-add_executable (test_klt test_klt.cpp ${SRC})
-target_link_libraries(test_klt PUBLIC ${OpenCV_LIBS})
-target_include_directories(test_klt PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+# add_executable (test_klt test_klt.cpp ${SRC})
+# target_link_libraries(test_klt PUBLIC ${OpenCV_LIBS})
+# target_include_directories(test_klt PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+add_executable (test_extractor test_extractor.cpp ${SRC})
+target_link_libraries(test_extractor PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_extractor PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})

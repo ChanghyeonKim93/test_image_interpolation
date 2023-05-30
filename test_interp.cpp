@@ -25,7 +25,7 @@ int main()
  float shift = 0.44;
  int u = 350;
  int v = 250;
- int win_size = 51;
+ int win_size = 21;
  size_t max_iter = 10000;
  int half_win_size = win_size * 0.5;
  std::vector<cv::Point2f> pts_sample;
