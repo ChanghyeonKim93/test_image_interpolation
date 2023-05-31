@@ -305,12 +305,10 @@ void FeatureExtractor::extractAndComputORBwithBinning(
 		}
 	}
 
-	// Get features
 	kpts_extracted.resize(0);
 	desc_extracted.resize(0);
 	kpts_extracted.reserve(n_total_bins);
 	desc_extracted.reserve(n_total_bins);
-
 	for(const std::vector<IndexAndResponse>& indexes_and_responses : index_and_response_bins) {
 		if(indexes_and_responses.empty()) continue;
 
@@ -321,27 +319,8 @@ void FeatureExtractor::extractAndComputORBwithBinning(
 			desc_extracted.push_back(desc);
 		}
 	}
-
-	std::cout << "all / selected: " << kpts_all.size() << ", " << kpts_extracted.size() << std::endl;
 }
 
 void FeatureExtractor::setNonmaxSuppression(bool flag_on) {
 	flag_nonmax_ = true;
 };
-
-int FeatureExtractor::descriptorDistance(const cv::Mat &a, const cv::Mat &b) {
-  const int *pa = a.ptr<int32_t>();
-  const int *pb = b.ptr<int32_t>();
-
-  int dist = 0;
-
-	// 총 256 bits.
-  for(int i = 0; i < 8; ++i, ++pa, ++pb) {
-    unsigned  int v = *pa ^ *pb; // 서로 다르면 1, 같으면 0. 한번에 총 32비트 (4바이트 정수) 
-	  // true bit의 갯수를 세는 루틴.
-    v = v - ((v >> 1) & 0x55555555);
-    v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-    dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-  }
-  return dist;
-}

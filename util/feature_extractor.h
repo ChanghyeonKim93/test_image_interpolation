@@ -196,9 +196,6 @@ public:
 public:
 	void setNonmaxSuppression(bool flag_on);
 
-// descriptor related
-public:
-	int descriptorDistance(const cv::Mat& a, const cv::Mat& b);
 };
 
 #endif
