@@ -44,8 +44,12 @@ int main()
 		const int threshold_descriptor_distance = 50;
 
 		// Generate modules
-		std::unique_ptr<FeatureExtractor> feature_extractor = std::make_unique<FeatureExtractor>();
-		feature_extractor->initParams(n_cols, n_rows, n_bins_u, n_bins_v, thres_fast, radius);
+		const size_t max_num_features = 5000;
+		const float threshold_fast = 15.0;
+		const float scale_factor = 1.2;
+		const int num_level = 8;
+		std::unique_ptr<FeatureExtractor> feature_extractor = 
+			std::make_unique<FeatureExtractor>(max_num_features, threshold_fast, scale_factor, num_level);
 		
 		std::unique_ptr<FeatureMatcher> feature_matcher = std::make_unique<FeatureMatcher>();
 
