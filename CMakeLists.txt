@@ -38,3 +38,21 @@ target_include_directories(test_interp PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR}
 add_executable (test_extractor test_extractor.cpp ${SRC})
 target_link_libraries(test_extractor PUBLIC ${OpenCV_LIBS})
 target_include_directories(test_extractor PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+
+add_executable (test_cache_hit test_cache_hit.cpp ${SRC})
+target_link_libraries(test_cache_hit PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_cache_hit PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+add_executable (test_cache_miss test_cache_miss.cpp ${SRC})
+target_link_libraries(test_cache_miss PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_cache_miss PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+
+add_executable (test_branch_prediction test_branch_prediction.cpp ${SRC})
+target_link_libraries(test_branch_prediction PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_branch_prediction PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+add_executable (test_branch_misprediction test_branch_misprediction.cpp ${SRC})
+target_link_libraries(test_branch_misprediction PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_branch_misprediction PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
