@@ -28,7 +28,7 @@ class FeatureExtractor;
 
 struct ParamsORB {
 	int   MaxFeatures{5000}; // % MaxFeatures (300) % The maximum number of features to retain.
-	float ScaleFactor{1.05}; // % ScaleFactor (1.2) % Pyramid decimation ratio.
+	float ScaleFactor{1.1}; // % ScaleFactor (1.2) % Pyramid decimation ratio.
 	int   NLevels{8};        // % NLevels (8)% The number of pyramid levels.
 	float EdgeThreshold{31}; // % EdgeThreshold (31)% This is size of the border where the features are not detected.
 	int   FirstLevel{0};     // % FirstLevel (0)% The level of pyramid to put source image to.
