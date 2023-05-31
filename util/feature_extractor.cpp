@@ -196,8 +196,6 @@ void FeatureExtractor::extractORBfromEmptyBinOnly(const cv::Mat& img,
 		}
 	}
 
-	std::cout << "count_preoccupied : " << count_preoccupied << std::endl;
-
 	for(size_t index_feature = 0; index_feature < n_pts; ++index_feature) {
 		const cv::KeyPoint& kpt = kpts_all[index_feature];
 
@@ -431,8 +429,6 @@ void FeatureExtractor::extractAndComputORBfromEmptyBinOnly(
 		}
 	}
 
-	std::cout << "count_preoccupied : " << count_preoccupied << std::endl;
-
 	for(size_t index_feature = 0; index_feature < n_pts; ++index_feature) {
 		const cv::KeyPoint& kpt = kpts_all[index_feature];
 
@@ -455,7 +451,7 @@ void FeatureExtractor::extractAndComputORBfromEmptyBinOnly(
 	
 	for(size_t index_bin = 0; index_bin < n_total_bins; ++index_bin) {
 		if(feature_bins[index_bin].is_preoccupied) continue;
-		
+
 		std::vector<IndexResponse>& indexes_and_responses = feature_bins[index_bin].index_response_vector;
 
 		if(indexes_and_responses.size() == 0) continue;

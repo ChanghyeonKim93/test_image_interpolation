@@ -159,7 +159,7 @@ void FeatureMatcher::matchByDescriptor(
   for(size_t index = 0; index < n_pts_projected; ++index) {
     const cv::KeyPoint& kpt_query = kpts_projected[index];
     const cv::Mat& descriptor_query = desc_projected[index];
-
+    
     std::vector<int> candidate_indexes_reference;
     this->findCandidateIndexesFromReferenceIndexGrid(
       kpt_query.pt, reference_grid_, 
@@ -174,7 +174,8 @@ void FeatureMatcher::matchByDescriptor(
     };
     IndexDistance index_dist_first({-1, 255});
 
-    const int allowable_scale_difference = 1;
+    const int allowable_scale_difference = 2;
+
     if(candidate_indexes_reference.size() > 0) {
       for(const int index_reference : candidate_indexes_reference){
         const cv::KeyPoint& kpt_reference = kpts_reference[index_reference];
@@ -182,23 +183,26 @@ void FeatureMatcher::matchByDescriptor(
         const int scale_level_reference = kpt_reference.octave;
 
         // Check scale level
-        if(abs(scale_level_reference-kpt_query.octave) > allowable_scale_difference) continue;
-
+        if(abs(scale_level_reference-kpt_query.octave) > allowable_scale_difference)
+          continue;
+        
         // Check radius 
         const cv::Point2f pixel_difference = kpt_query.pt - kpt_reference.pt;
         const double pixel_distance_squared = pixel_difference.x*pixel_difference.x + pixel_difference.y*pixel_difference.y;
-        if(pixel_distance_squared > search_radius_squared) continue;
+        if(pixel_distance_squared > search_radius_squared) 
+          continue;
 
         // Check descriptor distance
         const int descriptor_distance = this->descriptorDistance(descriptor_query, descriptor_reference);
-        if(descriptor_distance >= threshold_descriptor_distance) continue; // reject over the threshold
+        if(descriptor_distance >= threshold_descriptor_distance) 
+          continue; // reject over the threshold
 
         if(descriptor_distance < index_dist_first.distance){ 
           index_dist_first.index_reference = index_reference;
           index_dist_first.distance = descriptor_distance;
         }
       }
-      
+
       if(index_dist_first.index_reference > -1){
         projected_reference_association[index] = index_dist_first.index_reference;
       }
@@ -260,7 +264,7 @@ void FeatureMatcher::matchByDescriptorWithEstimatedScale(
     };
     IndexDistance index_dist_first({-1, 255});
 
-    const int allowable_scale_difference = 1;
+    const int allowable_scale_difference = 2;
     if(candidate_indexes_reference.size() > 0) {
       for(const int index_reference : candidate_indexes_reference){
         const cv::KeyPoint& kpt_reference = kpts_reference[index_reference];
@@ -303,7 +307,6 @@ void FeatureMatcher::generateReferenceIndexGrid(
   const size_t num_cell_u = std::floor(static_cast<double>(num_column) * inverse_grid_size_u);
   const size_t num_cell_v = std::floor(static_cast<double>(num_row) * inverse_grid_size_v);
 
-  std::cout << num_cell_u << ", " << num_cell_v << std::endl;
   reference_grid.resize(num_cell_v, std::vector<std::vector<int>>(num_cell_u, std::vector<int>(0)));
 
   const size_t n_pts = kpts_reference.size();
@@ -327,8 +330,8 @@ inline void FeatureMatcher::findCandidateIndexesFromReferenceIndexGrid(
   const size_t num_search_cell_u, const size_t num_search_cell_v,
   std::vector<int>& candidate_indexes)
 {
-  const double inverse_grid_size_u = 1.0/ static_cast<double>(grid_size_u_in_pixel);
-  const double inverse_grid_size_v = 1.0/ static_cast<double>(grid_size_v_in_pixel);
+  const double inverse_grid_size_u = 1.0 / static_cast<double>(grid_size_u_in_pixel);
+  const double inverse_grid_size_v = 1.0 / static_cast<double>(grid_size_v_in_pixel);
   const size_t num_cell_u = std::floor(static_cast<double>(num_column) * inverse_grid_size_u);
   const size_t num_cell_v = std::floor(static_cast<double>(num_row) * inverse_grid_size_v);
 
@@ -352,7 +355,6 @@ inline void FeatureMatcher::findCandidateIndexesFromReferenceIndexGrid(
   if(search_range_v_min < 0) search_range_v_min = 0;
   if(search_range_v_max >= num_cell_v) search_range_v_max = num_cell_v - 1;
 
-  const int allowable_scale_difference = 1;
   for(size_t index_cell_v = search_range_v_min; index_cell_v <= search_range_v_max; ++index_cell_v) {
     const std::vector<std::vector<int>>& reference_grid_row = reference_grid[index_cell_v];
     for(size_t index_cell_u = search_range_u_min; index_cell_u <= search_range_u_max; ++index_cell_u){
