@@ -240,10 +240,18 @@ void FeatureExtractor::extractAndComputORBwithBinning(
 	}
 	else img_in = img;
 
+	if(n_maximum_feature_per_bin < 1)
+		throw std::runtime_error("In FeatureExtractor::extractAndComputORBwithBinning, n_maximum_feature_per_bin < 1");
+
 	const int n_cols = img_in.cols;
 	const int n_rows = img_in.rows;
 	const double inv_n_cols = 1.0 / static_cast<double>(n_cols);
 	const double inv_n_rows = 1.0 / static_cast<double>(n_rows);
+
+	const double bin_size_column = static_cast<double>(n_cols) / static_cast<double>(n_bins_u);
+	const double bin_size_row = static_cast<double>(n_rows) / static_cast<double>(n_bins_v);
+	const double inverse_bin_size_column = 1.0 / bin_size_column;
+	const double inverse_bin_size_row = 1.0 / bin_size_row;
 
 	const int n_total_bins = n_bins_u * n_bins_v;
 	
@@ -262,46 +270,39 @@ void FeatureExtractor::extractAndComputORBwithBinning(
 	}
 
 	// Index Bucketing
-	struct IndexAndResponse {
+	struct IndexResponse {
 		size_t index;
 		float response;
 	};
 
-	std::vector<std::vector<IndexAndResponse>> index_and_response_bins(n_total_bins);
+	std::vector<std::vector<IndexResponse>> index_and_response_bins(n_total_bins);
 	for(size_t index_feature = 0; index_feature < n_pts; ++index_feature) {
 		const cv::KeyPoint& kpt = kpts_all[index_feature];
-
-		const double bin_size_column = static_cast<double>(n_cols) / static_cast<double>(n_bins_u);
-		const double bin_size_row = static_cast<double>(n_rows) / static_cast<double>(n_bins_v);
-		const double inverse_bin_size_column = 1.0 / bin_size_column;
-		const double inverse_bin_size_row = 1.0 / bin_size_row;
 
 		const int bin_column = static_cast<int>(kpt.pt.x * inverse_bin_size_column);
 		const int bin_row = static_cast<int>(kpt.pt.y * inverse_bin_size_row);
 
-		if(bin_column < 0 || bin_column >= n_bins_u || bin_row < 0 || bin_row >= n_bins_v)
-			continue;
+		if(bin_column < 0 || bin_column >= n_bins_u) continue;
+		if(bin_row < 0 || bin_row >= n_bins_v) continue;
 
 		const size_t index_bin = bin_column + n_bins_u * bin_row;
 		index_and_response_bins[index_bin].push_back({index_feature, kpt.response});
 	}
 
 	// sort and remain fixed number of features per bin
-	auto compare_functor = [](const IndexAndResponse& a, const IndexAndResponse& b) {
+	auto compare_functor = [](const IndexResponse& a, const IndexResponse& b) {
 		return a.response < b.response;
 	};
 	
-	if(n_maximum_feature_per_bin > 1) {
-		for(size_t index_bin = 0; index_bin < n_total_bins; ++index_bin) {
-			std::vector<IndexAndResponse>& indexes_and_responses = index_and_response_bins[index_bin];
+	for(size_t index_bin = 0; index_bin < n_total_bins; ++index_bin) {
+		std::vector<IndexResponse>& indexes_and_responses = index_and_response_bins[index_bin];
 
-			if(indexes_and_responses.size() == 0) continue;
+		if(indexes_and_responses.size() == 0) continue;
 
-			if(indexes_and_responses.size() > 1) {
-				std::sort(indexes_and_responses.begin(), indexes_and_responses.end(), compare_functor);
-				if(indexes_and_responses.size() > n_maximum_feature_per_bin)
-					indexes_and_responses.resize(n_maximum_feature_per_bin);
-			}
+		if(indexes_and_responses.size() > 1) {
+			std::sort(indexes_and_responses.begin(), indexes_and_responses.end(), compare_functor);
+			if(indexes_and_responses.size() > n_maximum_feature_per_bin)
+				indexes_and_responses.resize(n_maximum_feature_per_bin);
 		}
 	}
 
@@ -309,10 +310,10 @@ void FeatureExtractor::extractAndComputORBwithBinning(
 	desc_extracted.resize(0);
 	kpts_extracted.reserve(n_total_bins);
 	desc_extracted.reserve(n_total_bins);
-	for(const std::vector<IndexAndResponse>& indexes_and_responses : index_and_response_bins) {
+	for(const std::vector<IndexResponse>& indexes_and_responses : index_and_response_bins) {
 		if(indexes_and_responses.empty()) continue;
 
-		for(const IndexAndResponse& index_and_response : indexes_and_responses) {
+		for(const IndexResponse& index_and_response : indexes_and_responses) {
 			const cv::KeyPoint& kpt = kpts_all[index_and_response.index];
 			const cv::Mat& desc = desc_all[index_and_response.index];
 			kpts_extracted.push_back(kpt);

@@ -11,7 +11,7 @@ void FeatureMatcher::matchByOpticalFlow(
   const size_t window_size, const size_t max_pyramid_level, const double threshold_error,
   std::vector<cv::Point2f>& pts_tracked,
   std::vector<bool>& mask_valid,
-  bool use_pts_tracked_prior = false)
+  bool use_pts_tracked_prior)
 {
   if(kpts1.empty())
     throw std::runtime_error("In FeatureMatcher::matchByOpticalFlow, pts_projected.size() == 0 || desc_projected.size() == 0");
@@ -60,7 +60,7 @@ void FeatureMatcher::matchByOpticalFlowBidirection(
   const double threshold_bidirection_pixel_error,
   std::vector<cv::Point2f>& pts_tracked,
   std::vector<bool>& mask_valid,
-  bool use_pts_tracked_prior = false)
+  bool use_pts_tracked_prior)
 {
   if(kpts1.empty())
     throw std::runtime_error("In FeatureMatcher::matchByOpticalFlowBidirection, pts_projected.size() == 0 || desc_projected.size() == 0");

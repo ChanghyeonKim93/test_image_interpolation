@@ -9,8 +9,6 @@
 #include <opencv4/opencv2/video.hpp> // KLT tracker
 
 class FeatureMatcher {
-private:
-
 public:
   FeatureMatcher();
   ~FeatureMatcher();
@@ -26,7 +24,7 @@ public:
     std::vector<cv::Point2f>& pts_tracked,
     std::vector<bool>& mask_tracked,
     /* optional */
-    bool use_pts_tracked_prior);
+    bool use_pts_tracked_prior = false);
 
   void matchByOpticalFlowBidirection(
     /* inputs */
@@ -40,7 +38,7 @@ public:
     std::vector<cv::Point2f>& pts_tracked,
     std::vector<bool>& mask_tracked,
     /* optional */
-    bool use_pts_tracked_prior);
+    bool use_pts_tracked_prior = false);
 
   void matchByDescriptor(
     /* inputs */

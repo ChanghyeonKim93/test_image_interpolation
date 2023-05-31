@@ -33,7 +33,7 @@ int main()
 		const int n_rows = img.rows;
 		const int n_bins_u = 20;
 		const int n_bins_v = 12;
-		const int n_maximum_feature_per_bin = 5;
+		const int num_maximum_feature_per_bin = 1;
 		const int thres_fast = 15;
 		const int radius = 5;
 
@@ -43,14 +43,16 @@ int main()
 		const double search_radius = 30.0;
 		const int threshold_descriptor_distance = 50;
 
-
+		// Generate modules
 		std::unique_ptr<FeatureExtractor> feature_extractor = std::make_unique<FeatureExtractor>();
 		feature_extractor->initParams(n_cols, n_rows, n_bins_u, n_bins_v, thres_fast, radius);
+		
+		std::unique_ptr<FeatureMatcher> feature_matcher = std::make_unique<FeatureMatcher>();
 
 		std::vector<cv::KeyPoint> kpts_selected;
 		std::vector<cv::Mat> desc_selected;
 		feature_extractor->extractAndComputORBwithBinning(
-			img, n_bins_u, n_bins_v, n_maximum_feature_per_bin,
+			img, n_bins_u, n_bins_v, num_maximum_feature_per_bin,
 			kpts_selected, desc_selected);
 
 		std::vector<cv::KeyPoint> kpts_all;
@@ -67,9 +69,6 @@ int main()
 		double depth1 = 1.23;
 		double depth2 = depth1 - t12.z();
 		
-		std::cout << "depth1, 2 : " << depth1 << ", " << depth2 << std::endl;
-		std::cout << "changed scale : " << std::round(log2(depth2/depth1)) << std::endl;
-
 		std::vector<int> estimated_scale_level_selected;
 		estimated_scale_level_selected.reserve(kpts_selected.size());
 		for(size_t index = 0; index < kpts_selected.size(); ++index) {
@@ -78,9 +77,7 @@ int main()
 			estimated_scale_level_selected.push_back(scale_level_original + changed_scale);
 		}
 
-		// Descriptor
-		std::unique_ptr<FeatureMatcher> feature_matcher = std::make_unique<FeatureMatcher>();
-		
+		// Descriptor		
 		std::unordered_map<int, int> association_projected_to_reference;
 		feature_matcher->matchByDescriptorWithEstimatedScale(
 			kpts_selected, desc_selected,	estimated_scale_level_selected,
@@ -106,6 +103,35 @@ int main()
 		cv::imshow("matching result", img_hconcat);
 		cv::waitKey(0);
 
+		// KLT matching
+		const size_t window_size = 25;
+		const size_t max_pyramid_level = 4;
+		const double threshold_error = 30.0;
+		std::vector<cv::Point2f> pts_tracked;
+		std::vector<bool> mask_tracked;
+		feature_matcher->matchByOpticalFlow(kpts_selected, img, img, 
+			window_size, max_pyramid_level, threshold_error,
+			pts_tracked, mask_tracked);
+
+		cv::Mat img_hconcat_track;
+		cv::hconcat(img_color, img_color, img_hconcat_track);
+		for(size_t i = 0; i < kpts_selected.size(); ++i){			
+			const cv::Point2f& pt_selected = kpts_selected[i].pt;
+			cv::Point2f& pt_reference = pts_tracked[i];
+			pt_reference.x += n_cols;
+
+			if( !mask_tracked[i] ) continue;
+
+			cv::line(img_hconcat_track, pt_selected, pt_reference, cv::Scalar(0,255,255),1);
+			cv::drawMarker(img_hconcat_track, pt_selected, cv::Scalar(255,0,0), cv::MARKER_SQUARE, 8, 1);
+			cv::circle(img_hconcat_track, pt_selected, 1, cv::Scalar(255,0,0), 1);
+			cv::drawMarker(img_hconcat_track, pt_reference, cv::Scalar(0,255,0), cv::MARKER_SQUARE, 8, 1);
+			cv::circle(img_hconcat_track, pt_reference, 1, cv::Scalar(0,255,0), 1);
+		}
+
+		cv::namedWindow("tracking result");
+		cv::imshow("tracking result", img_hconcat_track);
+		cv::waitKey(0);
 	}
 	catch (std::runtime_error e)
 	{

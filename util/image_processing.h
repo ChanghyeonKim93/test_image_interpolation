@@ -5,17 +5,16 @@
 #include "opencv2/core.hpp"
 
 #include "timer.h"
+/*
+    I1 ax   1-ax I2
+    ay   (v,u)
 
-namespace image_processing
-{
+    1-ay
+    I3           I4
+*/
+namespace image_processing {
     std::string type2str(const cv::Mat& img);
-    /*
-     I1 ax   1-ax I2
-     ay   (v,u)
-
-     1-ay
-     I3           I4
-    */
+    
     float interpImage(
         const cv::Mat &img, const cv::Point2f &pt);
 
