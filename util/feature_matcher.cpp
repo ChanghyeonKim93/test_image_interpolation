@@ -174,7 +174,7 @@ void FeatureMatcher::matchByDescriptor(
     };
     IndexDistance index_dist_first({-1, 255});
 
-    const int allowable_scale_difference = 2;
+    const int allowable_scale_difference = 4;
 
     if(candidate_indexes_reference.size() > 0) {
       for(const int index_reference : candidate_indexes_reference){
@@ -183,7 +183,7 @@ void FeatureMatcher::matchByDescriptor(
         const int scale_level_reference = kpt_reference.octave;
 
         // Check scale level
-        if(abs(scale_level_reference-kpt_query.octave) > allowable_scale_difference)
+        if(abs(scale_level_reference - kpt_query.octave) > allowable_scale_difference)
           continue;
         
         // Check radius 

@@ -38,6 +38,8 @@ public:
 	FeatureExtractor(const size_t max_num_features = 5000, const float threshold_fast = 15.0, 
 		const float scale_factor = 1.2, const int num_level = 8);
 
+	void setThresholdFast(const float threshold_fast);
+
 	/// @brief FeatureExtractor class destructor
 	~FeatureExtractor();
 
@@ -59,6 +61,11 @@ public:
 		const std::vector<cv::Point2f>& pts_exist, 
 		const int n_bins_u, const int n_bins_v, const int n_maximum_feature_per_bin, 
 		std::vector<cv::KeyPoint>& kpts_extracted, std::vector<cv::Mat>& desc_extracted);
+
+	void calculateHarrisScore(
+		const cv::Mat& img,
+		const std::vector<cv::Point2f>& pts, const size_t window_size, 
+		std::vector<float>& scores);
 };
 
 #endif

@@ -24,7 +24,12 @@ FeatureExtractor::FeatureExtractor(
 FeatureExtractor::~FeatureExtractor() 
 {
 	std::cout << " - FEATURE_EXTRACTOR is deleted.\n";
-};
+}
+
+void FeatureExtractor::setThresholdFast(const float threshold_fast){
+	threshold_fast_ = threshold_fast;
+	extractor_orb_->setFastThreshold(threshold_fast_);
+}
 
 void FeatureExtractor::extractORB(const cv::Mat& img, PixelVec& pts_extracted) {
 	// INPUT IMAGE MUST BE CV_8UC1 image.
@@ -477,5 +482,64 @@ void FeatureExtractor::extractAndComputORBfromEmptyBinOnly(
 			kpts_extracted.push_back(kpt);
 			desc_extracted.push_back(desc);
 		}
+	}
+}
+
+void FeatureExtractor::calculateHarrisScore(
+	const cv::Mat& img,
+	const std::vector<cv::Point2f>& pts, const size_t window_size, 
+	std::vector<float>& scores)
+{
+	const double kappa = 0.01;
+
+	const int n_elem = window_size*window_size;
+
+	const size_t n_cols = img.cols;
+	const size_t n_rows = img.rows;
+	cv::Mat du;
+	cv::Mat dv;
+	cv::Sobel(img,du,CV_16S,1,0,3);
+	cv::Sobel(img,dv,CV_16S,0,1,3);
+
+	const size_t half_window_size = window_size/2;
+	const size_t n_pts = pts.size();
+	scores.resize(n_pts);
+	for(size_t index = 0; index < n_pts; ++index) {
+		const cv::Point2f& pt = pts[index];
+
+		const int u = std::floor(pt.x);
+		const int v = std::floor(pt.y);
+		if(u < half_window_size || u >= n_cols - half_window_size ||
+		 	 v < half_window_size || v >= n_rows - half_window_size)
+		{
+			scores[index] = 0;
+			continue;
+		}
+		cv::Rect roi = cv::Rect(cv::Point(u-half_window_size,v-half_window_size),cv::Point(u+half_window_size,v+half_window_size));
+		cv::Mat du_pattern = du(roi);
+		cv::Mat dv_pattern = dv(roi);
+
+		du_pattern /= 2048;
+		dv_pattern /= 2048;
+
+		double r11 = 0, r12 = 0, r22 = 0;
+		short* ptr_du = du_pattern.ptr<short>(0);
+		short* ptr_dv = dv_pattern.ptr<short>(0);
+		const short* ptr_du_end = ptr_du + n_elem;
+		const short* ptr_dv_end = ptr_dv + n_elem;
+
+		for(; ptr_du != ptr_du_end; ++ptr_du, ++ptr_dv){
+			r11 += (*ptr_du)*(*ptr_du);
+			r12 += (*ptr_du)*(*ptr_dv);
+			r22 += (*ptr_dv)*(*ptr_dv);
+		}
+		r11 /= n_elem;
+		r12 /= n_elem;
+		r22 /= n_elem;
+		double det = r11*r22 - r12*r12;
+		double tr = r11 + r22;
+
+		scores[index] = det - kappa*tr;
+				
 	}
 }

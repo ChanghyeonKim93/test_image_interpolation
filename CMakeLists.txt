@@ -40,6 +40,11 @@ target_link_libraries(test_extractor PUBLIC ${OpenCV_LIBS})
 target_include_directories(test_extractor PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
 
 
+add_executable (test_klt_subpix test_klt_subpix.cpp ${SRC})
+target_link_libraries(test_klt_subpix PUBLIC ${OpenCV_LIBS})
+target_include_directories(test_klt_subpix PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
+
+
 add_executable (test_cache_hit test_cache_hit.cpp ${SRC})
 target_link_libraries(test_cache_hit PUBLIC ${OpenCV_LIBS})
 target_include_directories(test_cache_hit PUBLIC ${OpenCV_LIBS} ${CMAKE_SOURCE_DIR})
