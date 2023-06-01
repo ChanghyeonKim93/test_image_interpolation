@@ -490,7 +490,7 @@ void FeatureExtractor::calculateHarrisScore(
 	const std::vector<cv::Point2f>& pts, const size_t window_size, 
 	std::vector<float>& scores)
 {
-	const double kappa = 0.01;
+	const double kappa = 1e-3;
 
 	const int n_elem = window_size*window_size;
 

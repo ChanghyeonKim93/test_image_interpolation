@@ -28,7 +28,7 @@ int main()
 		
 		cv::Mat img1, img2;
 		double shift = 0;
-		double scale_true = 1.5;
+		double scale_true = 1.2;
 
 		int image_size = 400;
 		int image_half_size = image_size/2;
@@ -120,9 +120,12 @@ int main()
 		cv::Mat img_hconcat_track;
 		cv::hconcat(img1_color, img2_color, img_hconcat_track);
 		for(size_t i = 0; i < kpts_selected.size(); ++i){
+			const cv::Point2f& pt_selected = kpts_selected[i].pt;			
+			cv::drawMarker(img_hconcat_track, pt_selected, cv::Scalar(255,0,0), cv::MARKER_TILTED_CROSS, 10, 1);
+			cv::circle(img_hconcat_track, pt_selected, 1, cv::Scalar(255,0,0), 1);
+
 			if(!mask_tracked[i] || scores[i] < 1e7) continue;
 			
-			const cv::Point2f& pt_selected = kpts_selected[i].pt;			
 			cv::Point2f pt_tracked = pts_tracked[i];
 			cv::Point2f pt_subpix = pts_subpix[i];
 			cv::Point2f pt_true = pts_track_true[i];
@@ -131,9 +134,6 @@ int main()
 			pt_true.x += n_cols;
 
 			// cv::line(img_hconcat_track2, pt_matched,pt_selected, cv::Scalar(0,255,255),1);
-			cv::drawMarker(img_hconcat_track, pt_selected, cv::Scalar(255,0,0), cv::MARKER_TILTED_CROSS, 10, 1);
-			cv::circle(img_hconcat_track, pt_selected, 1, cv::Scalar(255,0,0), 1);
-
 			cv::drawMarker(img_hconcat_track, pt_true, cv::Scalar(255,0,0), cv::MARKER_SQUARE, 10, 1);
 			cv::circle(img_hconcat_track, pt_true, 1, cv::Scalar(255,0,0), 1);
 
