@@ -50,6 +50,7 @@ int main() {
   std::vector<float> value_interp2;
   std::vector<bool> mask_interp;
 
+  // Safe
   timer::tic();
   for (int iter = 0; iter < max_iter; ++iter)
     value_interp[0] = image_processing::InterpolateImageIntensity(cv_image, pixel_list);
@@ -74,16 +75,36 @@ int main() {
       win_size);
   std::cout << "InterpolateImageIntensityWithIntegerRow: " << timer::toc(0) << " [ms]\n";
 
+  // Unsafe
+  timer::tic();
+  for (int iter = 0; iter < max_iter; ++iter)
+    value_interp[4] = image_processing::unsafe::InterpolateImageIntensity(cv_image, pixel_list);
+  std::cout << "unsafe::InterpolateImageIntensity: " << timer::toc(0) << " [ms]\n";
+
+  timer::tic();
+  for (int iter = 0; iter < max_iter; ++iter)
+    value_interp[5] = image_processing::unsafe::InterpolateImageIntensityWithPatchPattern(
+      cv_image, patch_center_pixel, patch_local_pixel_position_list);
+  std::cout << "unsafe::InterpolateImageIntensityWithPatchPattern: " << timer::toc(0) << " [ms]\n";
+
+  timer::tic();
+  for (int iter = 0; iter < max_iter; ++iter)
+    value_interp[6] = image_processing::unsafe::InterpolateImageIntensityWithPatchSize(
+      cv_image, patch_center_pixel, win_size, win_size);
+  std::cout << "unsafe::InterpolateImageIntensityWithPatchSize: " << timer::toc(0) << " [ms]\n";
+
+  timer::tic();
+  for (int iter = 0; iter < max_iter; ++iter)
+    value_interp[7] = image_processing::unsafe::InterpolateImageIntensityWithIntegerRow(
+      cv_image, patch_center_pixel.x(), static_cast<int>(patch_center_pixel.y()), win_size,
+      win_size);
+  std::cout << "unsafe::InterpolateImageIntensityWithIntegerRow: " << timer::toc(0) << " [ms]\n";
+
   // timer::tic();
   // for (int iter = 0; iter < max_iter; ++iter)
   //   image_processing::InterpolateImageIntensitySameRatioHorizontal(cv_image, pts_sample, shift,
   //                                                                  value_interp[4], mask_interp);
   // std::cout << "InterpolateImageIntensitySameRatioHorizontal: " << timer::toc(0) << " [ms]\n";
-
-  // timer::tic();
-  // for (int iter = 0; iter < max_iter; ++iter)
-  //   image_processing::unsafe::InterpolateImageIntensity(cv_image, pts_sample, value_interp[1]);
-  // std::cout << "unsafe::InterpolateImageIntensity: " << timer::toc(0) << " [ms]\n";
 
   // timer::tic();
   // for (int iter = 0; iter < max_iter; ++iter)

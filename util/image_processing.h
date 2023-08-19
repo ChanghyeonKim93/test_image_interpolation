@@ -64,43 +64,30 @@ std::vector<float> InterpolateImageIntensityWithIntegerColumn(const cv::Mat &cv_
                                                               const int patch_width,
                                                               const int patch_height);
 
-// void InterpolateImageIntensitySameRatio(const cv::Mat &cv_image,
-//                                         const std::vector<Eigen::Vector2f> &pixel_position_list,
-//                                         float ax, float ay,
-//                                         std::vector<float> *interpolated_intensity_list,
-//                                         std::vector<bool> *mask_interp);
-// void InterpolateImageIntensitySameRatioHorizontal(
-//   const cv::Mat &cv_image, const std::vector<Eigen::Vector2f> &pixel_position_list, float ax,
-//   std::vector<float> *interpolated_intensity_list, std::vector<bool> *mask_interp);
-// void InterpolateImageIntensitySameRatioRegularPattern(
-//   const cv::Mat &cv_image, const Eigen::Vector2f &center_pixel_position, const int patch_size,
-//   std::vector<float> *interpolated_intensity_list, std::vector<bool> *mask_interp);
-
-// inline void interpImageSameRatio_IntelSSE(
-//   const cv::Mat& cv_image, const std::vector<Eigen::Vector2f>& pts,
-//   float ax, float ay,
-//   std::vector<float>& interpolated_intensity_list, std::vector<bool>& mask_interp);
-// inline void interpImageSameRatioHorizontal_IntelSSE(
-//   const cv::Mat& cv_image, const std::vector<Eigen::Vector2f>& pts,
-//   float ax, float ay,
-//   std::vector<float>& interpolated_intensity_list, std::vector<bool>& mask_interp);
+// std::vector<float> InterpolateImageIntensity_SIMD_INTEL();
 
 namespace unsafe {
 
-void InterpolateImageIntensity(const cv::Mat &cv_image, const std::vector<Eigen::Vector2f> &pts,
-                               std::vector<float> &interpolated_intensity_list);
-void InterpolateImageIntensitySameRatio(const cv::Mat &cv_image,
-                                        const std::vector<Eigen::Vector2f> &pts, float ax, float ay,
-                                        std::vector<float> &interpolated_intensity_list);
-void InterpolateImageIntensitySameRatioHorizontal(const cv::Mat &cv_image,
-                                                  const std::vector<Eigen::Vector2f> &pts, float ax,
-                                                  std::vector<float> &interpolated_intensity_list);
-void InterpolateImageIntensitySameRatioHorizontalRegularPattern(
-  const cv::Mat &cv_image, const Eigen::Vector2f &pt_center, float ax, int win_size,
-  std::vector<float> &interpolated_intensity_list);
-void InterpolateImageIntensitySameRatioHorizontalRegularPatternArbitraryWindow(
-  const cv::Mat &cv_image, const Eigen::Vector2f &pt_center, float ax, int half_left,
-  int half_right, int half_up, int half_down, std::vector<float> &interpolated_intensity_list);
+std::vector<float>
+  InterpolateImageIntensity(const cv::Mat &cv_source_image,
+                            const std::vector<Eigen::Vector2f> &pixel_position_list);
+std::vector<float> InterpolateImageIntensityWithPatchPattern(
+  const cv::Mat &cv_source_image, const Eigen::Vector2f &patch_center_pixel_position,
+  const std::vector<Eigen::Vector2i> &patch_local_pixel_position_list);
+std::vector<float>
+  InterpolateImageIntensityWithPatchSize(const cv::Mat &cv_source_image,
+                                         const Eigen::Vector2f &patch_center_pixel_position,
+                                         const int patch_width, const int patch_height);
+std::vector<float> InterpolateImageIntensityWithIntegerRow(const cv::Mat &cv_source_image,
+                                                           const float patch_center_u,
+                                                           const int patch_center_v_floor,
+                                                           const int patch_width,
+                                                           const int patch_height);
+std::vector<float> InterpolateImageIntensityWithIntegerColumn(const cv::Mat &cv_source_image,
+                                                              const int patch_center_u_floor,
+                                                              const float patch_center_v,
+                                                              const int patch_width,
+                                                              const int patch_height);
 
 }; // namespace unsafe
 }; // namespace image_processing

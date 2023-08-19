@@ -426,6 +426,7 @@ std::vector<float>
         axay * (I00 - I01 - I10 + I11) + ax * (-I00 + I01) + ay * (-I00 + I10) + I00;
 
       *itr_interpolated_intensity = interpolated_intensity;
+      ++itr_interpolated_intensity;
     }
   }
 
@@ -476,6 +477,7 @@ std::vector<float> InterpolateImageIntensityWithIntegerRow(const cv::Mat &cv_ima
       const float interpolated_intensity = ax * (-I00 + I01);
 
       *itr_interpolated_intensity = interpolated_intensity;
+      ++itr_interpolated_intensity;
     }
   }
 
@@ -600,276 +602,196 @@ std::vector<float> InterpolateImageIntensityWithIntegerRow(const cv::Mat &cv_ima
 namespace image_processing {
 namespace unsafe {
 
-void InterpolateImageIntensitySameRatioHorizontalRegularPattern(const cv::Mat &cv_image,
-                                                                const cv::Point2f &pt_center,
-                                                                float ax, int win_size,
-                                                                std::vector<float> &value_interp) {
-  /*
-  data order
-     0  1  2  3  4  5  6
-     7  8  9 10 11 12 13
-    14 15 16 17 18 19 20
-    21 22 23 24 25 26 27
-    28 29 30 31 32 33 34
-    35 36 37 38 39 40 41
-    42 43 44 45 46 47 48
-  */
-  /*
-    I1 I2 I3 I4 I5
-    J1 J2 J3 J4 J5
-    K1 K2 K3 K4 K5
-
-    Ia = I2-Ib; // I2*(1-ax)
-
-
-  // simplified algorithm
-    I1 = *ptr;
-    Ia = I1*(1-ax);
-
-    for{
-      I2 = *(++ptr);
-      Ib = I2*ax;
-      I_interp = Ia + Ib; // ( == I1*(1-ax) + I2*ax )
-      Ia = I2 - Ib; // == I2*(1-ax)
-    }
-  */
+std::vector<float>
+  InterpolateImageIntensity(const cv::Mat &cv_image,
+                            const std::vector<Eigen::Vector2f> &pixel_position_list) {
   if (cv_image.type() != CV_8U)
-    std::runtime_error("cv_image.type() != CV_8U");
-  if (!(win_size & 0x01))
-    std::runtime_error("'win_size' should be an odd number!");
+    throw std::runtime_error("cv_image.type() != CV_8U");
 
-  const double one_minus_ax = 1.0 - ax;
-  const int n_cols = cv_image.cols;
-  const int n_rows = cv_image.rows;
-  const uint8_t *ptr_img = cv_image.ptr<uint8_t>(0);
+  std::vector<float> interpolated_intensity_list;
 
-  const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
+  const int &image_width = cv_image.cols;
+  const int &image_height = cv_image.rows;
+  const uint8_t *source_ptr = cv_image.ptr<uint8_t>(0);
 
-  const int half_win_size = static_cast<int>(floor(win_size * 0.5));
+  const size_t num_pixels = pixel_position_list.size();
+  interpolated_intensity_list.resize(num_pixels, -1.0f);
 
-  const int n_pts = win_size * win_size;
-  value_interp.resize(n_pts, -1.0);
+  std::vector<float>::iterator itr_interpolated_intensity = interpolated_intensity_list.begin();
+  std::vector<Eigen::Vector2f>::const_iterator itr_pixel = pixel_position_list.begin();
+  for (; itr_interpolated_intensity != interpolated_intensity_list.end();
+       ++itr_interpolated_intensity, ++itr_pixel) {
+    const auto &pixel = *itr_pixel;
+    const auto &u = pixel.x();
+    const auto &v = pixel.y();
+    const int u_floor = static_cast<int>(std::floor(u));
+    const int v_floor = static_cast<int>(std::floor(v));
 
-  const uint8_t *ptr_row_start =
-    ptr_img + (pt_center0.y - half_win_size) * n_cols + pt_center0.x - half_win_size;
-  const uint8_t *ptr_row_end = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
-  const uint8_t *ptr_row_final = ptr_row_start + (win_size)*n_cols;
+    const float ax = u - u_floor;
+    const float ay = v - v_floor;
+    const float axay = ax * ay;
 
-  int counter = 0;
-  std::vector<float>::iterator it_value = value_interp.begin();
-  for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols) {
-    const uint8_t *ptr = ptr_row_start;
-    // const float I1 = *ptr;
-    // float I2 = *(++ptr);
-    // float Ia = I1 * one_minus_ax;
-    // ++ptr;
-    // for (; ptr != ptr_row_end; ++ptr) {
-    //   float Ib = I2 * ax;
-    //   float I_interp = Ia + Ib;
+    const uint8_t *source_I00_ptr = source_ptr + v_floor * image_width + u_floor;
+    const float &I00 = *source_I00_ptr;
+    const float &I01 = *(++source_I00_ptr);
+    const float &I11 = *(source_I00_ptr += image_width);
+    const float &I10 = *(--source_I00_ptr);
 
-    //   *(it_value) = I_interp;
+    const float interpolated_intensity =
+      axay * (I00 - I01 - I10 + I11) + ax * (-I00 + I01) + ay * (-I00 + I10) + I00;
 
-    //   Ia = I2 - Ib;
-    //   I2 = *(ptr);
-    //   ++it_value;
-    //   ++counter;
-    // }
-    const float I1 = *ptr;
-    float Ia = I1 * (1.0f - ax);
-    for (; ptr != ptr_row_end; ++ptr) {
-      const float I2 = *(++ptr);
-      const float Ib = I2 * ax;
-      *(it_value) = Ia + Ib; // ( == I1*(1-ax) + I2*ax )
-      Ia = I2 - Ib;          // == I2*(1-ax)
-      ++it_value;
-      ++counter;
-    }
+    *itr_interpolated_intensity = interpolated_intensity;
   }
-};
 
-void InterpolateImageIntensitySameRatioHorizontalRegularPatternArbitraryWindow(
-  const cv::Mat &cv_image, const cv::Point2f &pt_center, float ax, int half_left, int half_right,
-  int half_up, int half_down, std::vector<float> &value_interp) {
-  /*
-  data order
-     0  1  2  3  4  5  6
-     7  8  9 10 11 12 13
-    14 15 16 17 18 19 20
-    21 22 23 24 25 26 27
-    28 29 30 31 32 33 34
-    35 36 37 38 39 40 41
-    42 43 44 45 46 47 48
-  */
-  /*
-    I1 I2 I3 I4 I5
-    J1 J2 J3 J4 J5
-    K1 K2 K3 K4 K5
-
-  // Initial
-    Ia = I1*(1-ax);
-    Ib = I2*ax;
-    I_interp = Ia + Ib; ( == I1*(1-ax) + I2*ax )
-
-  // Consecutive
-    Ia = I2 - Ib;
-    Ib = I3*ax;
-    I_interp = Ia + Ib; ( == I2*(1-ax) + I3*ax ) ...
-  */
-  if (cv_image.type() != CV_8U)
-    std::runtime_error("cv_image.type() != CV_8U");
-
-  const double one_minus_ax = 1.0 - ax;
-  const int n_cols = cv_image.cols;
-  const int n_rows = cv_image.rows;
-  const uint8_t *ptr_img = cv_image.ptr<uint8_t>(0);
-
-  const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
-
-  const int win_size_horizontal = half_right + half_left + 1;
-  const int win_size_vertical = half_down + half_up + 1;
-
-  const int n_pts = win_size_horizontal * win_size_vertical;
-  value_interp.resize(n_pts, -1.0);
-
-  const uint8_t *ptr_row_start =
-    ptr_img + (pt_center0.y - half_up) * n_cols + pt_center0.x - half_left;
-  const uint8_t *ptr_row_end =
-    ptr_row_start + win_size_horizontal + 2; // TODO: Patch가 화면 밖으로 나갈때!
-  const uint8_t *ptr_row_final = ptr_row_start + (win_size_vertical)*n_cols;
-
-  int counter = 0;
-  std::vector<float>::iterator it_value = value_interp.begin();
-  for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols) {
-    const uint8_t *ptr = ptr_row_start;
-    float I1 = *ptr;
-    float I2 = *(++ptr);
-    float Ia = I1 * one_minus_ax;
-
-    ++ptr;
-    for (; ptr != ptr_row_end; ++ptr) {
-      float Ib = I2 * ax;
-      float I_interp = Ia + Ib;
-
-      *(it_value) = I_interp;
-
-      Ia = I2 - Ib;
-      I2 = *(ptr);
-      ++it_value;
-      ++counter;
-    }
-  }
-};
-
-void InterpolateImageIntensity(const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
-                               std::vector<float> &value_interp) {
-  if (cv_image.type() != CV_8U)
-    std::runtime_error("cv_image.type() != CV_8U");
-
-  const int n_cols = cv_image.cols;
-  const int n_rows = cv_image.rows;
-  const uint8_t *ptr_img = cv_image.ptr<uint8_t>(0);
-
-  const int n_pts = pts.size();
-  value_interp.resize(n_pts, -1.0);
-
-  std::vector<float>::iterator it_value = value_interp.begin();
-  std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-  for (; it_value != value_interp.end(); ++it_value, ++it_pt) {
-    const cv::Point2f &pt = *it_pt;
-
-    const float uc = pt.x;
-    const float vc = pt.y;
-    int u0 = static_cast<int>(pt.x);
-    int v0 = static_cast<int>(pt.y);
-
-    float ax = uc - u0;
-    float ay = vc - v0;
-    float axay = ax * ay;
-    int idx_I1 = v0 * n_cols + u0;
-
-    const uint8_t *ptr = ptr_img + idx_I1;
-    const float &I1 = *ptr;             // v_0n_colsu_0
-    const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
-    const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
-    const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
-
-    float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
-
-    *it_value = I_interp;
-  }
-};
-
-void InterpolateImageIntensitySameRatio(const cv::Mat &cv_image,
-                                        const std::vector<cv::Point2f> &pts, float ax, float ay,
-                                        std::vector<float> &value_interp) {
-  if (cv_image.type() != CV_8U)
-    std::runtime_error("cv_image.type() != CV_8U");
-
-  const int n_cols = cv_image.cols;
-  const int n_rows = cv_image.rows;
-  const uint8_t *ptr_img = cv_image.ptr<uint8_t>(0);
-
-  const int n_pts = pts.size();
-  value_interp.resize(n_pts, -1.0);
-
-  float axay = ax * ay;
-
-  std::vector<float>::iterator it_value = value_interp.begin();
-  std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-  for (; it_value != value_interp.end(); ++it_value, ++it_pt) {
-    const cv::Point2f &pt = *it_pt;
-
-    const float uc = pt.x;
-    const float vc = pt.y;
-    int u0 = static_cast<int>(pt.x);
-    int v0 = static_cast<int>(pt.y);
-
-    int idx_I1 = v0 * n_cols + u0;
-
-    const uint8_t *ptr = ptr_img + idx_I1;
-    const float &I1 = *ptr;             // v_0n_colsu_0
-    const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
-    const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
-    const float &I3 = *(--ptr);         // v_0n_colsu_0 + n_cols
-
-    float I_interp = axay * (I1 - I2 - I3 + I4) + ax * (-I1 + I2) + ay * (-I1 + I3) + I1;
-
-    *it_value = I_interp;
-  }
-};
-
-void InterpolateImageIntensitySameRatioHorizontal(const cv::Mat &cv_image,
-                                                  const std::vector<cv::Point2f> &pts, float ax,
-                                                  std::vector<float> &value_interp) {
-  if (cv_image.type() != CV_8U)
-    std::runtime_error("cv_image.type() != CV_8U");
-
-  const int n_cols = cv_image.cols;
-  const int n_rows = cv_image.rows;
-  const uint8_t *ptr_img = cv_image.ptr<uint8_t>(0);
-
-  const int n_pts = pts.size();
-  value_interp.resize(n_pts, -1.0);
-
-  std::vector<float>::iterator it_value = value_interp.begin();
-  std::vector<cv::Point2f>::const_iterator it_pt = pts.begin();
-
-  for (; it_value != value_interp.end(); ++it_value, ++it_pt) {
-    const cv::Point2f &pt = *it_pt;
-
-    int u0 = static_cast<int>(pt.x);
-    int v0 = static_cast<int>(pt.y);
-
-    int idx_I1 = v0 * n_cols + u0;
-
-    const uint8_t *ptr = ptr_img + idx_I1;
-    const float &I1 = *ptr;     // v_0n_colsu_0
-    const float &I2 = *(++ptr); // v_0n_colsu_0 + 1
-
-    float I_interp = (I2 - I1) * ax + I1;
-
-    *it_value = I_interp;
-  }
+  return interpolated_intensity_list;
 }
+
+std::vector<float> InterpolateImageIntensityWithPatchPattern(
+  const cv::Mat &cv_image, const Eigen::Vector2f &patch_center_pixel_position,
+  const std::vector<Eigen::Vector2i> &patch_local_pixel_position_list) {
+  if (cv_image.type() != CV_8U)
+    throw std::runtime_error("cv_image.type() != CV_8U");
+
+  std::vector<float> interpolated_intensity_list;
+
+  const int &image_width = cv_image.cols;
+  const int &image_height = cv_image.rows;
+  const uint8_t *source_ptr = cv_image.ptr<uint8_t>(0);
+
+  const size_t num_patch_pixels = patch_local_pixel_position_list.size();
+  interpolated_intensity_list.resize(num_patch_pixels, -1.0f);
+
+  const auto &u_center = patch_center_pixel_position.x();
+  const auto &v_center = patch_center_pixel_position.y();
+  const int u_center_floor = static_cast<int>(std::floor(u_center));
+  const int v_center_floor = static_cast<int>(std::floor(v_center));
+  const float ax = u_center - u_center_floor;
+  const float ay = v_center - v_center_floor;
+  const float axay = ax * ay;
+
+  std::vector<float>::iterator itr_interpolated_intensity = interpolated_intensity_list.begin();
+  std::vector<Eigen::Vector2i>::const_iterator itr_pixel = patch_local_pixel_position_list.begin();
+  for (; itr_interpolated_intensity != interpolated_intensity_list.end();
+       ++itr_interpolated_intensity, ++itr_pixel) {
+    const auto &local_patch_pixel = *itr_pixel;
+    const int u_floor = u_center_floor + local_patch_pixel.x();
+    const int v_floor = v_center_floor + local_patch_pixel.y();
+
+    const uint8_t *source_I00_ptr = source_ptr + v_floor * image_width + u_floor;
+    const float &I00 = *source_I00_ptr;
+    const float &I01 = *(++source_I00_ptr);
+    const float &I11 = *(source_I00_ptr += image_width);
+    const float &I10 = *(--source_I00_ptr);
+
+    const float interpolated_intensity =
+      axay * (I00 - I01 - I10 + I11) + ax * (-I00 + I01) + ay * (-I00 + I10) + I00;
+
+    *itr_interpolated_intensity = interpolated_intensity;
+  }
+
+  return interpolated_intensity_list;
+}
+
+std::vector<float>
+  InterpolateImageIntensityWithPatchSize(const cv::Mat &cv_image,
+                                         const Eigen::Vector2f &patch_center_pixel_position,
+                                         const int patch_width, const int patch_height) {
+  if (cv_image.type() != CV_8U)
+    throw std::runtime_error("cv_image.type() != CV_8U");
+  auto is_odd_number = [](const int number) -> bool { return (number & 0b01); };
+  if (!is_odd_number(patch_width))
+    throw std::runtime_error("patch_width is not odd number.\n");
+  if (!is_odd_number(patch_height))
+    throw std::runtime_error("patch_height is not odd number.\n");
+  const int half_patch_width = patch_width >> 1;
+  const int half_patch_height = patch_height >> 1;
+
+  std::vector<float> interpolated_intensity_list;
+
+  const int &image_width = cv_image.cols;
+  const int &image_height = cv_image.rows;
+  const uint8_t *source_ptr = cv_image.ptr<uint8_t>(0);
+
+  const int num_patch_pixels = patch_width * patch_height;
+  interpolated_intensity_list.resize(num_patch_pixels, -1.0f);
+
+  const auto &u_center = patch_center_pixel_position.x();
+  const auto &v_center = patch_center_pixel_position.y();
+  const int u_center_floor = static_cast<int>(std::floor(u_center));
+  const int v_center_floor = static_cast<int>(std::floor(v_center));
+  const float ax = u_center - u_center_floor;
+  const float ay = v_center - v_center_floor;
+  const float axay = ax * ay;
+
+  std::vector<float>::iterator itr_interpolated_intensity = interpolated_intensity_list.begin();
+  const uint8_t *source_row_ptr = source_ptr + (v_center_floor - half_patch_height) * image_width;
+  for (int v = v_center_floor - half_patch_height; v <= v_center_floor + half_patch_height; ++v) {
+    for (int u = u_center_floor - half_patch_width; u <= u_center_floor + half_patch_width; ++u) {
+      const uint8_t *source_I00_ptr = source_row_ptr + u;
+      const float &I00 = *source_I00_ptr;
+      const float &I01 = *(++source_I00_ptr);
+      const float &I11 = *(source_I00_ptr += image_width);
+      const float &I10 = *(--source_I00_ptr);
+
+      const float interpolated_intensity =
+        axay * (I00 - I01 - I10 + I11) + ax * (-I00 + I01) + ay * (-I00 + I10) + I00;
+
+      *itr_interpolated_intensity = interpolated_intensity;
+      ++itr_interpolated_intensity;
+    }
+    source_row_ptr += image_width;
+  }
+
+  return interpolated_intensity_list;
+}
+
+std::vector<float> InterpolateImageIntensityWithIntegerRow(const cv::Mat &cv_image,
+                                                           const float patch_center_u,
+                                                           const int patch_center_v_floor,
+                                                           const int patch_width,
+                                                           const int patch_height) {
+  if (cv_image.type() != CV_8U)
+    throw std::runtime_error("cv_image.type() != CV_8U");
+  auto is_odd_number = [](const int number) -> bool { return (number & 0b01); };
+  if (!is_odd_number(patch_width))
+    throw std::runtime_error("patch_width is not odd number.\n");
+  if (!is_odd_number(patch_height))
+    throw std::runtime_error("patch_height is not odd number.\n");
+  const int half_patch_width = patch_width >> 1;
+  const int half_patch_height = patch_height >> 1;
+
+  std::vector<float> interpolated_intensity_list;
+
+  const int &image_width = cv_image.cols;
+  const int &image_height = cv_image.rows;
+  const uint8_t *source_ptr = cv_image.ptr<uint8_t>(0);
+
+  const int num_patch_pixels = patch_width * patch_height;
+  interpolated_intensity_list.resize(num_patch_pixels, -1.0f);
+
+  const auto &u_center = patch_center_u;
+  const auto &v_center = patch_center_v_floor;
+  const int u_center_floor = static_cast<int>(std::floor(u_center));
+  const int v_center_floor = v_center;
+  const float ax = u_center - u_center_floor;
+
+  std::vector<float>::iterator itr_interpolated_intensity = interpolated_intensity_list.begin();
+  for (int v = v_center_floor - half_patch_height; v <= v_center_floor + half_patch_height; ++v) {
+    const uint8_t *source_row_ptr = source_ptr + v * image_width;
+    for (int u = u_center_floor - half_patch_width; u <= u_center_floor + half_patch_width; ++u) {
+      const uint8_t *source_I00_ptr = source_row_ptr + u;
+      const float &I00 = *source_I00_ptr;
+      const float &I01 = *(++source_I00_ptr);
+
+      const float interpolated_intensity = ax * (-I00 + I01);
+
+      *itr_interpolated_intensity = interpolated_intensity;
+      ++itr_interpolated_intensity;
+    }
+  }
+
+  return interpolated_intensity_list;
+}
+
 }; // namespace unsafe
 }; // namespace image_processing
