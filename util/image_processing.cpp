@@ -1,18 +1,14 @@
-/*
-Copyright 2023 Changhyeon Kim
-*/
-
 #include "image_processing.h"
 
 namespace image_processing
 {
-  std::string type2str(const cv::Mat &img)
+  std::string ConvertImageTypeToString(const cv::Mat &img)
   {
     std::string r;
     int type = img.type();
 
-    uchar depth = type & CV_MAT_DEPTH_MASK;
-    uchar chans = 1 + (type >> CV_CN_SHIFT);
+    uint8_t depth = type & CV_MAT_DEPTH_MASK;
+    uint8_t chans = 1 + (type >> CV_CN_SHIFT);
 
     switch (depth)
     {
@@ -48,29 +44,29 @@ namespace image_processing
     return r;
   }
 
-  float interpImage(const cv::Mat &img, const cv::Point2f &pt)
+  float InterpolateImageIntensity(const cv::Mat &img, const cv::Point2f &pt)
   {
     if (img.type() != CV_8U)
       std::runtime_error("img.type() != CV_8U");
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+    const int &n_cols = img.cols;
+    const int &n_rows = img.rows;
+    const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
     if (pt.x < 0 || pt.x > n_cols - 1 || pt.y < 0 || pt.y > n_rows - 1)
       return -1.0f;
 
     const float uc = pt.x;
     const float vc = pt.y;
-    int u0 = static_cast<int>(pt.x);
-    int v0 = static_cast<int>(pt.y);
+    int u0 = static_cast<int>(std::floor(pt.x));
+    int v0 = static_cast<int>(std::floor(pt.y));
 
     float ax = uc - u0;
     float ay = vc - v0;
     float axay = ax * ay;
     int idx_I1 = v0 * n_cols + u0;
 
-    const unsigned char *ptr = ptr_img + idx_I1;
+    const uint8_t *ptr = ptr_img + idx_I1;
     const float &I1 = *ptr;             // v_0n_colsu_0
     const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
     const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
@@ -81,17 +77,17 @@ namespace image_processing
     return value_interp;
   }
 
-  void interpImage(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-                   std::vector<float> &value_interp, std::vector<bool> &mask_interp)
+  void InterpolateImageIntensity(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+                                 std::vector<float> &value_interp, std::vector<bool> &mask_interp)
   {
     if (img.type() != CV_8U)
       std::runtime_error("img.type() != CV_8U");
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+    const int n_cols = img.cols;
+    const int n_rows = img.rows;
+    const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-    const size_t n_pts = pts.size();
+    const int n_pts = pts.size();
     value_interp.resize(n_pts, -1.0);
     mask_interp.resize(n_pts, false);
 
@@ -114,7 +110,7 @@ namespace image_processing
       float axay = ax * ay;
       int idx_I1 = v0 * n_cols + u0;
 
-      const unsigned char *ptr = ptr_img + idx_I1;
+      const uint8_t *ptr = ptr_img + idx_I1;
       const float &I1 = *ptr;             // v_0n_colsu_0
       const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
       const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
@@ -127,7 +123,7 @@ namespace image_processing
     }
   }
 
-  void interpImageSameRatio(
+  void InterpolateImageIntensitySameRatio(
       const cv::Mat &img, const std::vector<cv::Point2f> &pts,
       float ax, float ay,
       std::vector<float> &value_interp, std::vector<bool> &mask_interp)
@@ -135,11 +131,11 @@ namespace image_processing
     if (img.type() != CV_8U)
       std::runtime_error("img.type() != CV_8U");
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+    const int n_cols = img.cols;
+    const int n_rows = img.rows;
+    const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-    const size_t n_pts = pts.size();
+    const int n_pts = pts.size();
     value_interp.resize(n_pts, -1.0);
     mask_interp.resize(n_pts, false);
 
@@ -161,7 +157,7 @@ namespace image_processing
 
       int idx_I1 = v0 * n_cols + u0;
 
-      const unsigned char *ptr = ptr_img + idx_I1;
+      const uint8_t *ptr = ptr_img + idx_I1;
       const float &I1 = *ptr;             // v_0n_colsu_0
       const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
       const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
@@ -174,7 +170,7 @@ namespace image_processing
     }
   }
 
-  void interpImageSameRatioHorizontal(
+  void InterpolateImageIntensitySameRatioHorizontal(
       const cv::Mat &img, const std::vector<cv::Point2f> &pts,
       float ax,
       std::vector<float> &value_interp, std::vector<bool> &mask_interp)
@@ -182,11 +178,11 @@ namespace image_processing
     if (img.type() != CV_8U)
       std::runtime_error("img.type() != CV_8U");
 
-    const size_t n_cols = img.cols;
-    const size_t n_rows = img.rows;
-    const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+    const int n_cols = img.cols;
+    const int n_rows = img.rows;
+    const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-    const size_t n_pts = pts.size();
+    const int n_pts = pts.size();
     value_interp.resize(n_pts, -1.0);
     mask_interp.resize(n_pts, false);
 
@@ -205,7 +201,7 @@ namespace image_processing
 
       int idx_I1 = v0 * n_cols + u0;
 
-      const unsigned char *ptr = ptr_img + idx_I1;
+      const uint8_t *ptr = ptr_img + idx_I1;
       const float &I1 = *ptr;     // v_0n_colsu_0
       const float &I2 = *(++ptr); // v_0n_colsu_0 + 1
 
@@ -216,8 +212,8 @@ namespace image_processing
     }
   }
 
-  void interpImageSameRatioRegularPattern(
-      const cv::Mat &img, const cv::Point2f &pt_center, size_t win_size,
+  void InterpolateImageIntensitySameRatioRegularPattern(
+      const cv::Mat &img, const cv::Point2f &pt_center, int win_size,
       std::vector<float> &value_interp, std::vector<bool> &mask_interp)
   {
     /*
@@ -244,34 +240,34 @@ namespace image_processing
     const float axay = ax * ay;
   }
 
-  void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst)
+  void DownsampleImage(const cv::Mat &img_src, cv::Mat &img_dst)
   {
     if (img_src.type() != CV_8U)
       throw std::runtime_error("In function " + std::string(__func__) + ", " + "img_src.type() != CV_8U");
 
-    const size_t n_cols = img_src.cols;
-    const size_t n_rows = img_src.rows;
+    const int n_cols = img_src.cols;
+    const int n_rows = img_src.rows;
 
-    const size_t n_cols_half = n_cols >> 1;
-    const size_t n_rows_half = n_rows >> 1;
+    const int n_cols_half = n_cols >> 1;
+    const int n_rows_half = n_rows >> 1;
     img_dst = cv::Mat(n_rows_half, n_cols_half, CV_8U);
 
     // std::cout << img_src.size() << " --> " << img_dst.size() << std::endl;
 
-    const uchar *p_src = img_src.ptr<uchar>(0);
-    const uchar *p_src00 = p_src;
-    const uchar *p_src01 = p_src + 1;
-    const uchar *p_src10 = p_src + n_cols;
-    const uchar *p_src11 = p_src + n_cols + 1;
-    uchar *p_dst = img_dst.ptr<uchar>(0);
-    uchar *p_dst_end = p_dst + n_cols_half * n_rows_half;
+    const uint8_t *p_src = img_src.ptr<uint8_t>(0);
+    const uint8_t *p_src00 = p_src;
+    const uint8_t *p_src01 = p_src + 1;
+    const uint8_t *p_src10 = p_src + n_cols;
+    const uint8_t *p_src11 = p_src + n_cols + 1;
+    uint8_t *p_dst = img_dst.ptr<uint8_t>(0);
+    uint8_t *p_dst_end = p_dst + n_cols_half * n_rows_half;
 
     while (p_dst != p_dst_end)
     {
-      const uchar *p_src_row_end = p_src00 + n_cols;
+      const uint8_t *p_src_row_end = p_src00 + n_cols;
       for (; p_src00 != p_src_row_end; ++p_dst, p_src00 += 2, p_src01 += 2, p_src10 += 2, p_src11 += 2)
       {
-        *p_dst = static_cast<uchar>((ushort)(*p_src00 + *p_src01 + *p_src10 + *p_src11) >> 2);
+        *p_dst = static_cast<uint8_t>((ushort)(*p_src00 + *p_src01 + *p_src10 + *p_src11) >> 2);
         // *p_dst = *p_src00;
       }
       p_src00 += n_cols;
@@ -281,30 +277,30 @@ namespace image_processing
     }
   }
 
-  void padImageByMirroring(const cv::Mat &img_src, cv::Mat &img_dst, const size_t pad_size)
+  void GeneratePaddedImageByMirroring(const cv::Mat &img_src, cv::Mat &img_dst, const int pad_size)
   {
-    const size_t n_cols = img_src.cols;
-    const size_t n_rows = img_src.rows;
-    const size_t pad_size_doubled = pad_size * 2;
-    const size_t n_cols_padded = n_cols + pad_size_doubled;
-    const size_t n_rows_padded = n_rows + pad_size_doubled;
+    const int n_cols = img_src.cols;
+    const int n_rows = img_src.rows;
+    const int pad_size_doubled = pad_size * 2;
+    const int n_cols_padded = n_cols + pad_size_doubled;
+    const int n_rows_padded = n_rows + pad_size_doubled;
 
     img_dst = cv::Mat::zeros(n_rows_padded, n_cols_padded, img_src.type());
 
-    const uchar *ptr_src = img_src.ptr<uchar>(0);
-    const uchar *ptr_src_end = ptr_src + n_cols * n_rows;
-    uchar *ptr_dst = img_dst.ptr<uchar>(0) + pad_size * n_cols_padded + pad_size;
+    const uint8_t *ptr_src = img_src.ptr<uint8_t>(0);
+    const uint8_t *ptr_src_end = ptr_src + n_cols * n_rows;
+    uint8_t *ptr_dst = img_dst.ptr<uint8_t>(0) + pad_size * n_cols_padded + pad_size;
 
     // copy original
-    const size_t size_of_row = sizeof(uchar) * n_cols;
+    const int size_of_row = sizeof(uint8_t) * n_cols;
     for (; ptr_src < ptr_src_end; ptr_src += n_cols, ptr_dst += n_cols_padded)
     {
       memcpy(ptr_dst, ptr_src, size_of_row);
     }
 
     // mirror columns
-    uchar *ptr_dst_row = img_dst.ptr<uchar>(pad_size);
-    uchar *ptr_dst_row_end = img_dst.ptr<uchar>(n_rows_padded - pad_size);
+    uint8_t *ptr_dst_row = img_dst.ptr<uint8_t>(pad_size);
+    uint8_t *ptr_dst_row_end = img_dst.ptr<uint8_t>(n_rows_padded - pad_size);
     for (; ptr_dst_row < ptr_dst_row_end; ptr_dst_row += n_cols_padded)
     {
       ptr_src = ptr_dst_row + pad_size;
@@ -321,19 +317,19 @@ namespace image_processing
     }
 
     // upper pad
-    const size_t size_of_padded_row = sizeof(uchar) * n_cols_padded;
-    ptr_src = img_dst.ptr<uchar>(0) + pad_size * n_cols_padded;
-    ptr_src_end = img_dst.ptr<uchar>(0) + pad_size_doubled * n_cols_padded;
-    ptr_dst = img_dst.ptr<uchar>(0) + (pad_size - 1) * n_cols_padded;
+    const int size_of_padded_row = sizeof(uint8_t) * n_cols_padded;
+    ptr_src = img_dst.ptr<uint8_t>(0) + pad_size * n_cols_padded;
+    ptr_src_end = img_dst.ptr<uint8_t>(0) + pad_size_doubled * n_cols_padded;
+    ptr_dst = img_dst.ptr<uint8_t>(0) + (pad_size - 1) * n_cols_padded;
     for (; ptr_src < ptr_src_end; ptr_src += n_cols_padded, ptr_dst -= n_cols_padded)
     {
       memcpy(ptr_dst, ptr_src, size_of_padded_row);
     }
 
     // lower pad
-    ptr_src = img_dst.ptr<uchar>(0) + (n_rows_padded - pad_size_doubled) * n_cols_padded;
-    ptr_src_end = img_dst.ptr<uchar>(0) + (n_rows_padded - pad_size) * n_cols_padded;
-    ptr_dst = img_dst.ptr<uchar>(0) + (n_rows_padded - 1) * n_cols_padded;
+    ptr_src = img_dst.ptr<uint8_t>(0) + (n_rows_padded - pad_size_doubled) * n_cols_padded;
+    ptr_src_end = img_dst.ptr<uint8_t>(0) + (n_rows_padded - pad_size) * n_cols_padded;
+    ptr_dst = img_dst.ptr<uint8_t>(0) + (n_rows_padded - 1) * n_cols_padded;
     for (; ptr_src < ptr_src_end; ptr_src += n_cols_padded, ptr_dst -= n_cols_padded)
     {
       memcpy(ptr_dst, ptr_src, size_of_padded_row);
@@ -371,20 +367,20 @@ namespace image_processing
   //   }
   // }
 
-  void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                            const size_t max_level, const bool use_padding, const size_t pad_size)
+  void GenerateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                            const int max_level, const bool use_padding, const int pad_size)
   {
-    const size_t n_cols = img_src.cols;
-    const size_t n_rows = img_src.rows;
+    const int &n_cols = img_src.cols;
+    const int &n_rows = img_src.rows;
 
     pyramid.resize(max_level);
     img_src.copyTo(pyramid[0]);
 
-    for (size_t lvl = 1; lvl < max_level; ++lvl)
+    for (int lvl = 1; lvl < max_level; ++lvl)
     {
       const cv::Mat &img_org = pyramid[lvl - 1];
       cv::Mat &img_dst = pyramid[lvl];
-      image_processing::pyrDown(img_org, img_dst);
+      image_processing::DownsampleImage(img_org, img_dst);
     }
 
     if (use_padding)
@@ -396,26 +392,26 @@ namespace image_processing
       for (int lvl = max_level - 1; lvl >= 0; --lvl)
       {
         cv::Mat img_tmp(pyramid[lvl]);
-        padImageByMirroring(img_tmp, pyramid[lvl], pad_size);
+        GeneratePaddedImageByMirroring(img_tmp, pyramid[lvl], pad_size);
       }
     }
   }
 
-  void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                            const size_t max_level, const bool use_padding, const size_t pad_size,
+  void GenerateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                            const int max_level, const bool use_padding, const int pad_size,
                             std::vector<cv::Mat> &pyramid_du, std::vector<cv::Mat> &pyramid_dv)
   {
-    const size_t n_cols = img_src.cols;
-    const size_t n_rows = img_src.rows;
+    const int n_cols = img_src.cols;
+    const int n_rows = img_src.rows;
 
     pyramid.resize(max_level);
     img_src.copyTo(pyramid[0]);
 
-    for (size_t lvl = 1; lvl < max_level; ++lvl)
+    for (int lvl = 1; lvl < max_level; ++lvl)
     {
       const cv::Mat &img_org = pyramid[lvl - 1];
       cv::Mat &img_dst = pyramid[lvl];
-      image_processing::pyrDown(img_org, img_dst);
+      image_processing::DownsampleImage(img_org, img_dst);
     }
 
     if (use_padding)
@@ -427,29 +423,27 @@ namespace image_processing
       for (int lvl = max_level - 1; lvl >= 0; --lvl)
       {
         cv::Mat img_tmp(pyramid[lvl]);
-        padImageByMirroring(img_tmp, pyramid[lvl], pad_size);
+        GeneratePaddedImageByMirroring(img_tmp, pyramid[lvl], pad_size);
       }
     }
 
     pyramid_du.resize(max_level);
     pyramid_dv.resize(max_level);
-    for (size_t lvl = 0; lvl < max_level; ++lvl)
+    for (int lvl = 0; lvl < max_level; ++lvl)
     {
       pyramid_du[lvl] = cv::Mat(pyramid[lvl].size(), CV_16S);
       pyramid_dv[lvl] = cv::Mat(pyramid[lvl].size(), CV_16S);
-      
     }
   }
 };
-
 
 namespace image_processing
 {
   namespace unsafe
   {
-    void interpImageSameRatioHorizontalRegularPattern(
+    void InterpolateImageIntensitySameRatioHorizontalRegularPattern(
         const cv::Mat &img, const cv::Point2f &pt_center,
-        float ax, size_t win_size,
+        float ax, int win_size,
         std::vector<float> &value_interp)
     {
       /*
@@ -482,27 +476,27 @@ namespace image_processing
       if (!(win_size & 0x01))
         std::runtime_error("'win_size' should be an odd number!");
 
-      const double one_minus_ax = 1.0 - ax; 
-      const size_t n_cols = img.cols;
-      const size_t n_rows = img.rows;
-      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+      const double one_minus_ax = 1.0 - ax;
+      const int n_cols = img.cols;
+      const int n_rows = img.rows;
+      const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
       const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
 
-      const size_t half_win_size = static_cast<int>(floor(win_size * 0.5));
+      const int half_win_size = static_cast<int>(floor(win_size * 0.5));
 
-      const size_t n_pts = win_size * win_size;
+      const int n_pts = win_size * win_size;
       value_interp.resize(n_pts, -1.0);
 
-      const unsigned char *ptr_row_start = ptr_img + (pt_center0.y - half_win_size) * n_cols + pt_center0.x - half_win_size;
-      const unsigned char *ptr_row_end = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
-      const unsigned char *ptr_row_final = ptr_row_start + (win_size)*n_cols;
+      const uint8_t *ptr_row_start = ptr_img + (pt_center0.y - half_win_size) * n_cols + pt_center0.x - half_win_size;
+      const uint8_t *ptr_row_end = ptr_row_start + win_size + 2; // TODO: Patch가 화면 밖으로 나갈때!
+      const uint8_t *ptr_row_final = ptr_row_start + (win_size)*n_cols;
 
       int counter = 0;
       std::vector<float>::iterator it_value = value_interp.begin();
       for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols)
       {
-        const unsigned char *ptr = ptr_row_start;
+        const uint8_t *ptr = ptr_row_start;
         float I1 = *ptr;
         float I2 = *(++ptr);
         float Ia = I1 * one_minus_ax;
@@ -523,9 +517,9 @@ namespace image_processing
       }
     };
 
-    void interpImageSameRatioHorizontalRegularPatternArbitraryWindow(
+    void InterpolateImageIntensitySameRatioHorizontalRegularPatternArbitraryWindow(
         const cv::Mat &img, const cv::Point2f &pt_center,
-        float ax, size_t half_left, size_t half_right, size_t half_up, size_t half_down,
+        float ax, int half_left, int half_right, int half_up, int half_down,
         std::vector<float> &value_interp)
     {
       /*
@@ -556,28 +550,28 @@ namespace image_processing
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
 
-      const double one_minus_ax = 1.0 - ax; 
-      const size_t n_cols = img.cols;
-      const size_t n_rows = img.rows;
-      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+      const double one_minus_ax = 1.0 - ax;
+      const int n_cols = img.cols;
+      const int n_rows = img.rows;
+      const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
       const cv::Point2i pt_center0(static_cast<int>(pt_center.x), static_cast<int>(pt_center.y));
 
-      const size_t win_size_horizontal = half_right + half_left + 1;
-      const size_t win_size_vertical = half_down + half_up + 1;
+      const int win_size_horizontal = half_right + half_left + 1;
+      const int win_size_vertical = half_down + half_up + 1;
 
-      const size_t n_pts = win_size_horizontal * win_size_vertical;
+      const int n_pts = win_size_horizontal * win_size_vertical;
       value_interp.resize(n_pts, -1.0);
 
-      const unsigned char *ptr_row_start = ptr_img + (pt_center0.y - half_up) * n_cols + pt_center0.x - half_left;
-      const unsigned char *ptr_row_end = ptr_row_start + win_size_horizontal + 2; // TODO: Patch가 화면 밖으로 나갈때!
-      const unsigned char *ptr_row_final = ptr_row_start + (win_size_vertical)*n_cols;
+      const uint8_t *ptr_row_start = ptr_img + (pt_center0.y - half_up) * n_cols + pt_center0.x - half_left;
+      const uint8_t *ptr_row_end = ptr_row_start + win_size_horizontal + 2; // TODO: Patch가 화면 밖으로 나갈때!
+      const uint8_t *ptr_row_final = ptr_row_start + (win_size_vertical)*n_cols;
 
       int counter = 0;
       std::vector<float>::iterator it_value = value_interp.begin();
       for (; ptr_row_start != ptr_row_final; ptr_row_start += n_cols, ptr_row_end += n_cols)
       {
-        const unsigned char *ptr = ptr_row_start;
+        const uint8_t *ptr = ptr_row_start;
         float I1 = *ptr;
         float I2 = *(++ptr);
         float Ia = I1 * one_minus_ax;
@@ -598,17 +592,17 @@ namespace image_processing
       }
     };
 
-    void interpImage(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
-                     std::vector<float> &value_interp)
+    void InterpolateImageIntensity(const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+                                   std::vector<float> &value_interp)
     {
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
 
-      const size_t n_cols = img.cols;
-      const size_t n_rows = img.rows;
-      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+      const int n_cols = img.cols;
+      const int n_rows = img.rows;
+      const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-      const size_t n_pts = pts.size();
+      const int n_pts = pts.size();
       value_interp.resize(n_pts, -1.0);
 
       std::vector<float>::iterator it_value = value_interp.begin();
@@ -627,7 +621,7 @@ namespace image_processing
         float axay = ax * ay;
         int idx_I1 = v0 * n_cols + u0;
 
-        const unsigned char *ptr = ptr_img + idx_I1;
+        const uint8_t *ptr = ptr_img + idx_I1;
         const float &I1 = *ptr;             // v_0n_colsu_0
         const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
         const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
@@ -639,7 +633,7 @@ namespace image_processing
       }
     };
 
-    void interpImageSameRatio(
+    void InterpolateImageIntensitySameRatio(
         const cv::Mat &img, const std::vector<cv::Point2f> &pts,
         float ax, float ay,
         std::vector<float> &value_interp)
@@ -647,11 +641,11 @@ namespace image_processing
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
 
-      const size_t n_cols = img.cols;
-      const size_t n_rows = img.rows;
-      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+      const int n_cols = img.cols;
+      const int n_rows = img.rows;
+      const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-      const size_t n_pts = pts.size();
+      const int n_pts = pts.size();
       value_interp.resize(n_pts, -1.0);
 
       float axay = ax * ay;
@@ -669,7 +663,7 @@ namespace image_processing
 
         int idx_I1 = v0 * n_cols + u0;
 
-        const unsigned char *ptr = ptr_img + idx_I1;
+        const uint8_t *ptr = ptr_img + idx_I1;
         const float &I1 = *ptr;             // v_0n_colsu_0
         const float &I2 = *(++ptr);         // v_0n_colsu_0 + 1
         const float &I4 = *(ptr += n_cols); // v_0n_colsu_0 + 1 + n_cols
@@ -681,7 +675,7 @@ namespace image_processing
       }
     };
 
-    void interpImageSameRatioHorizontal(
+    void InterpolateImageIntensitySameRatioHorizontal(
         const cv::Mat &img, const std::vector<cv::Point2f> &pts,
         float ax,
         std::vector<float> &value_interp)
@@ -689,11 +683,11 @@ namespace image_processing
       if (img.type() != CV_8U)
         std::runtime_error("img.type() != CV_8U");
 
-      const size_t n_cols = img.cols;
-      const size_t n_rows = img.rows;
-      const unsigned char *ptr_img = img.ptr<unsigned char>(0);
+      const int n_cols = img.cols;
+      const int n_rows = img.rows;
+      const uint8_t *ptr_img = img.ptr<uint8_t>(0);
 
-      const size_t n_pts = pts.size();
+      const int n_pts = pts.size();
       value_interp.resize(n_pts, -1.0);
 
       std::vector<float>::iterator it_value = value_interp.begin();
@@ -708,7 +702,7 @@ namespace image_processing
 
         int idx_I1 = v0 * n_cols + u0;
 
-        const unsigned char *ptr = ptr_img + idx_I1;
+        const uint8_t *ptr = ptr_img + idx_I1;
         const float &I1 = *ptr;     // v_0n_colsu_0
         const float &I2 = *(++ptr); // v_0n_colsu_0 + 1
 

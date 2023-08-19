@@ -1,8 +1,12 @@
 #ifndef _IMAGE_PROCESSING_H_
 #define _IMAGE_PROCESSING_H_
 
+// References:
+//  https://github.com/JiatianWu/stereo-dso/blob/master/src/util/globalFuncs.h#L243
+//  https://github.com/uzh-rpg/rpg_svo/blob/d6161063b47f36ce78252ee4c4fedf3f6d8f2898/svo/src/feature_alignment.cpp#L355
 #include <iostream>
-#include "opencv2/core.hpp"
+#include "opencv4/opencv2/core.hpp"
+#include "eigen3/Eigen/Dense"
 
 #include "timer.h"
 /*
@@ -12,65 +16,65 @@
     1-ay
     I3           I4
 */
-namespace image_processing {
-    std::string type2str(const cv::Mat& img);
-    
-    float interpImage(
-        const cv::Mat &img, const cv::Point2f &pt);
+namespace image_processing
+{
+    std::string ConvertImageTypeToString(const cv::Mat &cv_image);
 
-    void interpImage(
-        const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+    float InterpolateImageIntensity(
+        const cv::Mat &cv_image, const cv::Point2f &pt);
+
+    void InterpolateImageIntensity(
+        const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
-    void interpImageSameRatio(
-        const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+    void InterpolateImageIntensitySameRatio(
+        const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
         float ax, float ay,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
-    void interpImageSameRatioHorizontal(
-        const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+    void InterpolateImageIntensitySameRatioHorizontal(
+        const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
         float ax,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
-    void interpImageSameRatioRegularPattern(
-        const cv::Mat &img, const cv::Point2f &pt_center, size_t win_size,
+    void InterpolateImageIntensitySameRatioRegularPattern(
+        const cv::Mat &cv_image, const cv::Point2f &pt_center, int win_size,
         std::vector<float> &value_interp, std::vector<bool> &mask_interp);
-    
-    void pyrDown(const cv::Mat &img_src, cv::Mat &img_dst);
-    void padImageByMirroring(const cv::Mat& img_src, cv::Mat& img_dst, const size_t pad_size);
-    void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                              const size_t max_level, const bool use_padding = false, const size_t pad_size = 0);
-    void generateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
-                              const size_t max_level, const bool use_padding, const size_t pad_size, 
-                              std::vector<cv::Mat>& pyramid_du, std::vector<cv::Mat>& pyramid_dv);
 
+    void DownsampleImage(const cv::Mat &img_src, cv::Mat &img_dst);
+    void GeneratePaddedImageByMirroring(const cv::Mat &img_src, cv::Mat &img_dst, const int pad_size);
+    void GenerateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                              const int max_level, const bool use_padding = false, const int pad_size = 0);
+    void GenerateImagePyramid(const cv::Mat &img_src, std::vector<cv::Mat> &pyramid,
+                              const int max_level, const bool use_padding, const int pad_size,
+                              std::vector<cv::Mat> &pyramid_du, std::vector<cv::Mat> &pyramid_dv);
 
     namespace unsafe
     {
-        void interpImage(
-            const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+        void InterpolateImageIntensity(
+            const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
             std::vector<float> &value_interp);
-        void interpImageSameRatio(
-            const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+        void InterpolateImageIntensitySameRatio(
+            const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
             float ax, float ay,
             std::vector<float> &value_interp);
-        void interpImageSameRatioHorizontal(
-            const cv::Mat &img, const std::vector<cv::Point2f> &pts,
+        void InterpolateImageIntensitySameRatioHorizontal(
+            const cv::Mat &cv_image, const std::vector<cv::Point2f> &pts,
             float ax,
             std::vector<float> &value_interp);
-        void interpImageSameRatioHorizontalRegularPattern(
-            const cv::Mat &img, const cv::Point2f &pt_center,
-            float ax, size_t win_size,
+        void InterpolateImageIntensitySameRatioHorizontalRegularPattern(
+            const cv::Mat &cv_image, const cv::Point2f &pt_center,
+            float ax, int win_size,
             std::vector<float> &value_interp);
-        void interpImageSameRatioHorizontalRegularPatternArbitraryWindow(
-            const cv::Mat &img, const cv::Point2f &pt_center,
-            float ax, size_t half_left, size_t half_right, size_t half_up, size_t half_down,
+        void InterpolateImageIntensitySameRatioHorizontalRegularPatternArbitraryWindow(
+            const cv::Mat &cv_image, const cv::Point2f &pt_center,
+            float ax, int half_left, int half_right, int half_up, int half_down,
             std::vector<float> &value_interp);
     };
 
     // inline void interpImageSameRatio_IntelSSE(
-    //   const cv::Mat& img, const std::vector<cv::Point2f>& pts,
+    //   const cv::Mat& cv_image, const std::vector<cv::Point2f>& pts,
     //   float ax, float ay,
     //   std::vector<float>& value_interp, std::vector<bool>& mask_interp);
     // inline void interpImageSameRatioHorizontal_IntelSSE(
-    //   const cv::Mat& img, const std::vector<cv::Point2f>& pts,
+    //   const cv::Mat& cv_image, const std::vector<cv::Point2f>& pts,
     //   float ax, float ay,
     //   std::vector<float>& value_interp, std::vector<bool>& mask_interp);
 };

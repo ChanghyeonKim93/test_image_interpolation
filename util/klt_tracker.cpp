@@ -49,8 +49,8 @@ void KLTTracker::trackForwardAdditive(const cv::Mat &img0, const cv::Mat &img1,
 
   const size_t half_window_size = window_size * 0.5;
   std::vector<cv::Mat> imgpyr0, imgpyr1, dupyr1, dvpyr1;
-  image_processing::generateImagePyramid(img0, imgpyr0, max_level, true, half_window_size);
-  image_processing::generateImagePyramid(img1, imgpyr1, max_level, true, half_window_size, dupyr1, dvpyr1);
+  image_processing::GenerateImagePyramid(img0, imgpyr0, max_level, true, half_window_size);
+  image_processing::GenerateImagePyramid(img1, imgpyr1, max_level, true, half_window_size, dupyr1, dvpyr1);
 
   std::vector<cv::Point2f> patch_pixels;
   this->generatePatchPixels(window_size, patch_pixels, use_sparse_patch);
@@ -81,7 +81,7 @@ void KLTTracker::trackForwardAdditive(const cv::Mat &img0, const cv::Mat &img1,
       for (cv::Point2f &pt_temp : pixels0)
         pt_temp += pt0;
 
-      image_processing::unsafe::interpImageSameRatio(I0, pixels0,
+      image_processing::unsafe::InterpolateImageIntenstiySameRatio(I0, pixels0,
                                                      pt0.x - floor(pt0.x), pt0.y - floor(pt0.y), I0_patch);
       
                    
