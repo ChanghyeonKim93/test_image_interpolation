@@ -30,6 +30,8 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
+# AlwaysBreakAfterDefinitionReturnType: true
+# AllowAllParametersOfDeclarationOnNextLine: false
 # BinPackArguments: false
 # BinPackParameters: false
 # AlignConsecutiveAssignments: false
