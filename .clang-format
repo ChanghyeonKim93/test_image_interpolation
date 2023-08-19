@@ -1,0 +1,94 @@
+---
+Language: Cpp # O
+Standard: Cpp11 # O
+ConstructorInitializerIndentWidth: 2 # O
+ContinuationIndentWidth: 2 # O
+IndentWrappedFunctionNames: true # O
+FixNamespaceComments: true # O
+ColumnLimit: 100 # O
+IndentWidth: 2 # O
+KeepEmptyLinesAtTheStartOfBlocks: false # O
+MaxEmptyLinesToKeep: 1 # O
+PointerAlignment: Right # O
+SortIncludes: true # O
+TabWidth: 2 # O
+AllowShortIfStatementsOnASingleLine: false # O
+AllowShortLoopsOnASingleLine: false
+BraceWrapping:
+  AfterClass: false # O
+  AfterControlStatement: false # O
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+# BinPackArguments: false
+# BinPackParameters: false
+# AlignConsecutiveAssignments: false
+# AlignConsecutiveDeclarations: false
+# AlignEscapedNewlinesLeft: false
+# AlignOperands: false
+# AlignTrailingComments: true
+# AlignConsecutiveMacros: true
+# AllowAllParametersOfDeclarationOnNextLine: false
+# AllowShortBlocksOnASingleLine: false
+# AllowShortCaseLabelsOnASingleLine: false
+# AllowShortFunctionsOnASingleLine: None
+# AlwaysBreakAfterDefinitionReturnType: None
+# AlwaysBreakAfterReturnType: None
+# AlwaysBreakBeforeMultilineStrings: false
+# AlwaysBreakTemplateDeclarations: true
+# BreakBeforeBinaryOperators: NonAssignment
+# BreakBeforeBraces: Custom
+# BreakBeforeInheritanceComma: false
+# BreakBeforeTernaryOperators: true
+# BreakConstructorInitializersBeforeComma: false
+# BreakConstructorInitializers: BeforeColon
+# BreakAfterJavaFieldAnnotations: false
+# BreakStringLiterals: true
+# CommentPragmas: ""
+# CompactNamespaces: false
+# ConstructorInitializerAllOnOneLineOrOnePerLine: true
+# Cpp11BracedListStyle: true
+# DerivePointerAlignment: false
+# DisableFormat: false
+# ExperimentalAutoDetectBinPacking: false
+# ForEachMacros: []
+# IncludeIsMainRegex: "(Test)?$"
+# IndentCaseLabels: false
+# IndentPPDirectives: AfterHash
+# MacroBlockBegin: ""
+# MacroBlockEnd: ""
+# NamespaceIndentation: None
+# ObjCBlockIndentWidth: 2
+# ObjCSpaceAfterProperty: false
+# ObjCSpaceBeforeProtocolList: true
+# PenaltyBreakAssignment: 2
+# PenaltyBreakBeforeFirstCallParameter: 200
+# PenaltyBreakComment: 200
+# PenaltyBreakFirstLessLess: 200
+# PenaltyBreakString: 1000
+# PenaltyExcessCharacter: 1000000
+# PenaltyReturnTypeOnItsOwnLine: 100
+# ReflowComments: true
+# SortUsingDeclarations: true
+# SpaceAfterCStyleCast: false
+# SpaceAfterTemplateKeyword: true
+# SpaceBeforeAssignmentOperators: true
+# SpaceBeforeParens: ControlStatements
+# SpacesBeforeTrailingComments: 2
+# SpaceInEmptyParentheses: false
+# SpacesInAngles: false
+# SpacesInContainerLiterals: true
+# SpacesInCStyleCastParentheses: false
+# SpacesInParentheses: false
+# SpacesInSquareBrackets: false
+# UseTab: Never
