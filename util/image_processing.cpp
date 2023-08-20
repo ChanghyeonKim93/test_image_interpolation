@@ -50,6 +50,48 @@ bool ImageProcessing::IsPixelPositionInImage(const float pixel_u, const float pi
   return (pixel_u > 0 && pixel_u <= image_width - 1 && pixel_v > 0 && pixel_v <= image_height - 1);
 }
 
+float ImageProcessing::CalculateSumOfSquaredDistance(const std::vector<float> &intensity_list_1,
+                                                     const std::vector<float> &intensity_list_2) {
+  if (intensity_list_1.size() != intensity_list_2.size())
+    throw std::runtime_error("intensity_list_1.size() != intensity_list_2.size()");
+
+  float ssd = 0;
+  const size_t num_elements = intensity_list_1.size();
+  for (size_t index = 0; index < num_elements; ++index) {
+    const float diff = intensity_list_1[index] - intensity_list_2[index];
+    ssd += diff * diff;
+  }
+  ssd /= static_cast<float>(num_elements);
+
+  return ssd;
+}
+
+float ImageProcessing::CalculateSumOfSquaredDistance(const cv::Mat &cv_image_1,
+                                                     const cv::Mat &cv_image_2) {
+  float ssd = 0;
+  if (cv_image_1.cols != cv_image_2.cols || cv_image_1.rows != cv_image_2.rows)
+    throw std::runtime_error(
+      "cv_image_1.cols != cv_image_2.cols || cv_image_1.rows != cv_image_2.rows");
+
+  if (cv_image_1.type() != CV_8UC1 || cv_image_2.type() != CV_8UC1)
+    throw std::runtime_error("cv_image_1.type() != CV_8UC1 || cv_image_2.type() != CV_8UC1\n");
+
+  const int &image_width = cv_image_1.cols;
+  const int &image_height = cv_image_1.rows;
+  const int num_elements = image_width * image_height;
+
+  const uint8_t *ptr1 = cv_image_1.ptr<uint8_t>(0);
+  const uint8_t *ptr2 = cv_image_2.ptr<uint8_t>(0);
+  const uint8_t *ptr1_end = ptr1 + num_elements + 1;
+  for (; ptr1 != ptr1_end; ++ptr1, ++ptr2) {
+    const float diff = static_cast<float>(*(ptr1)) - static_cast<float>(*(ptr2));
+    ssd += diff * diff;
+  }
+  ssd /= static_cast<float>(num_elements);
+
+  return ssd;
+}
+
 cv::Mat ImageProcessing::DownsampleImage(const cv::Mat &cv_source_image) {
   if (cv_source_image.type() != CV_8UC1)
     throw std::runtime_error("In function " + std::string(__func__) + ", " +
@@ -302,6 +344,7 @@ std::vector<float> ImageProcessing::InterpolateImageIntensity(
   interpolated_intensity_list.resize(num_pixels, -1.0f);
 
   std::vector<float>::iterator itr_interpolated_intensity = interpolated_intensity_list.begin();
+  int count = 0;
   std::vector<Eigen::Vector2f>::const_iterator itr_pixel = pixel_position_list.begin();
   for (; itr_interpolated_intensity != interpolated_intensity_list.end();
        ++itr_interpolated_intensity, ++itr_pixel) {

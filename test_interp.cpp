@@ -22,10 +22,10 @@ int main() {
   std::cout << "Image Size: [" << image_width << ", " << image_height << "]\n";
 
   // Generate patch. v-major is more faster.
-  constexpr float shift = 0.44f;
-  constexpr int u = 350;
-  constexpr int v = 250;
-  constexpr int win_size = 111;
+  constexpr float shift = 0.0f;
+  constexpr int u = 111;
+  constexpr int v = 111;
+  constexpr int win_size = 121;
   constexpr int max_iter = 1000;
   constexpr int half_win_size = win_size >> 1;
 
@@ -101,14 +101,12 @@ int main() {
   std::cout << "unsafe::InterpolateImageIntensityWithIntegerRow: " << timer::toc(0) << " [ms]\n";
 
   // Draw result
-  const int test_index = 7;
-  std::vector<uint8_t> values(interp_result_list[test_index].size(), 0);
-  for (int i = 0; i < interp_result_list[test_index].size(); ++i)
-    values[i] = static_cast<uint8_t>(interp_result_list[test_index][i]);
-
-  int sz = std::sqrt(pts_sample.size());
-  cv::Mat cv_image_interp(sz, sz, CV_8U);
-  memcpy(cv_image_interp.ptr<uint8_t>(0), values.data(), sizeof(uint8_t) * sz * sz);
+  std::vector<cv::Mat> interp_image_list;
+  for (int index = 0; index < 8; ++index) {
+    cv::Mat cv_image_interp =
+      ImageProcessing::GenerateImageByData<float>(interp_result_list[index], win_size, win_size);
+    interp_image_list.push_back(cv_image_interp);
+  }
 
   // Showing
   cv::Point2f tl(999, 999);
@@ -124,7 +122,22 @@ int main() {
     if (br.y < pt.y)
       br.y = pt.y;
   }
-  cv::Rect rect(tl, br);
+  tl.x = u - half_win_size;
+  tl.y = v - half_win_size;
+  br.x = u + half_win_size + 1;
+  br.y = v + half_win_size + 1;
+  cv::Rect rect(u - half_win_size, v - half_win_size, win_size, win_size);
+
+  // Compare results
+  cv::Mat rect_image = cv_image(rect);
+  std::vector<float> diff_list;
+  for (int index = 0; index < 8; ++index) {
+    std::cout << rect_image.size() << std::endl;
+    std::cout << interp_image_list[index].size() << std::endl;
+    diff_list.push_back(
+      ImageProcessing::CalculateSumOfSquaredDistance(rect_image, interp_image_list[index]));
+    std::cout << "Diff: " << diff_list.back() << std::endl;
+  }
 
   cv::rectangle(cv_image, rect, cv::Scalar(255, 255, 255), 1);
 
@@ -132,7 +145,7 @@ int main() {
   cv::imshow("cv_image", cv_image);
 
   cv::namedWindow("cv_image_interp");
-  cv::imshow("cv_image_interp", cv_image_interp);
+  cv::imshow("cv_image_interp", interp_image_list.back());
 
   cv::waitKey(0);
 
